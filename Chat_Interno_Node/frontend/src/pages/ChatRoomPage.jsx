@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import './ChatRoomPage.css';
 
 export default function ChatRoomPage() {
     const { id } = useParams();
@@ -51,6 +52,7 @@ export default function ChatRoomPage() {
         setNewMsg('');
     };
 
+
     useEffect(() => {
         msgRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
@@ -74,43 +76,48 @@ export default function ChatRoomPage() {
     };
 
     return (
-        <div style={{ maxWidth: 600, margin: '40px auto' }}>
-            <h2>Chat da Sala {id}</h2>
+        <div className="chat-container">
+            <div className="chat-header">
+                Chat da Sala {id}
+            </div>
 
-            <div style={{
-                border: '1px solid #ccc',
-                padding: 10,
-                height: 300,
-                overflowY: 'auto',
-                marginBottom: 10
-            }}>
+            <div className="chat-messages">
                 {messages.map((msg, index) => (
-                    <div key={index} style={{ marginBottom: 5 }}>
-                        <strong>{msg.sender || user?.username}:</strong> {msg.message || msg.content}
+                    <div 
+                        key={index} 
+                        className={`message ${msg.sender === user?.username ? 'message-sent' : 'message-received'}`}
+                    >
+                        <div className="message-sender">{msg.sender || user?.username}</div>
+                        <div className="message-content">{msg.message || msg.content}</div>
+                        <div className="message-time">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                     </div>
                 ))}
                 <div ref={msgRef} />
             </div>
 
-            <input
-                style={{ width: '80%' }}
-                placeholder="Digite sua mensagem..."
-                value={newMsg}
-                onChange={(e) => setNewMsg(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            />
-            <button onClick={sendMessage}>Enviar</button>
-
-            <div style={{ marginTop: 20 }}>
-                <h4>Adicionar usuário à sala</h4>
+            <div className="chat-input-area">
                 <input
-                    value={newUser}
-                    onChange={(e) => setNewUser(e.target.value)}
-                    placeholder="Nome de usuário"
-                    style={{ marginRight: 10 }}
+                    className="chat-input"
+                    placeholder="Digite sua mensagem..."
+                    value={newMsg}
+                    onChange={(e) => setNewMsg(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                 />
-                <button onClick={adicionarUsuario}>Adicionar</button>
-                {feedback && <p style={{ color: 'green', marginTop: 5 }}>{feedback}</p>}
+                <button className="send-button" onClick={sendMessage}>Enviar</button>
+            </div>
+
+            <div className="user-management">
+                <h4>Adicionar usuário à sala</h4>
+                <div className="user-input-area">
+                    <input
+                        className="user-input"
+                        value={newUser}
+                        onChange={(e) => setNewUser(e.target.value)}
+                        placeholder="Nome de usuário"
+                    />
+                    <button className="add-button" onClick={adicionarUsuario}>Adicionar</button>
+                </div>
+                {feedback && <div className="feedback-message">{feedback}</div>}
             </div>
         </div>
     );

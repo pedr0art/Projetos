@@ -31,6 +31,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit}>
                 <input name="username" placeholder="Usuário" onChange={handleChange} required /><br />
                 <input name="password" type="password" placeholder="Senha" onChange={handleChange} required /><br />
+                <p>Não tem conta? <a href="/register">Registre-se</a></p>
                 <button type="submit">Entrar</button>
             </form>
         </div>

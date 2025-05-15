@@ -24,18 +24,35 @@ module.exports = (io) => {
         });
 
         socket.on('sendMessage', async ({ roomId, message }) => {
-            const result = await pool.query(
-                'INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *',
-                [socket.user.id, roomId, message]
-            );
+            try {
+                // Insere a mensagem
+                const result = await pool.query(
+                    'INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *',
+                    [socket.user.id, roomId, message]
+                );
 
-            io.to(roomId).emit('receiveMessage', {
-                message: result.rows[0].content,
-                senderId: result.rows[0].sender_id,
-                roomId: result.rows[0].room_id,
-                createdAt: result.rows[0].created_at
-            });
+                const savedMessage = result.rows[0];
+
+                // Busca o username do remetente
+                const userResult = await pool.query(
+                    'SELECT username FROM users WHERE id = $1',
+                    [savedMessage.sender_id]
+                );
+
+                const senderUsername = userResult.rows[0].username;
+
+                // Emite a mensagem com o nome do remetente
+                io.to(roomId).emit('receiveMessage', {
+                    message: savedMessage.content,
+                    sender: senderUsername, // ✅ agora o frontend reconhece como sua
+                    roomId: savedMessage.room_id,
+                    createdAt: savedMessage.created_at
+                });
+            } catch (err) {
+                console.error('Erro ao enviar mensagem via socket:', err);
+            }
         });
+
 
         socket.on('disconnect', () => {
             console.log(`🔴 ${socket.user.username} desconectado`);

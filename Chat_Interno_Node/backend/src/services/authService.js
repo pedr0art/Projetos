@@ -4,11 +4,11 @@ const pool = require('../config/db');
 
 const jwtSecret = process.env.JWT_SECRET;
 
-exports.register = async (username, password) => {
+exports.register = async (username, password, sector_id) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const result = await pool.query(
-        'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username',
-        [username, hashedPassword]
+        'INSERT INTO users (username, password_hash, sector_id) VALUES ($1, $2, $3) RETURNING id, username, sector_id',
+        [username, hashedPassword, sector_id]
     );
     return result.rows[0];
 };
