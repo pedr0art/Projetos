@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // trocado BrowserRouter por HashRouter
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RoomsPage from './pages/RoomsPage'; 

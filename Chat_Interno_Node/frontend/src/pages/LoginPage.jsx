@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // importe Link aqui
 
 export default function LoginPage() {
     const [form, setForm] = useState({ username: '', password: '' });
@@ -31,7 +31,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit}>
                 <input name="username" placeholder="Usuário" onChange={handleChange} required /><br />
                 <input name="password" type="password" placeholder="Senha" onChange={handleChange} required /><br />
-                <p>Não tem conta? <a href="/register">Registre-se</a></p>
+                <p>Não tem conta? <Link to="/register">Registre-se</Link></p>  {/* <-- Aqui */}
                 <button type="submit">Entrar</button>
             </form>
         </div>

@@ -1,4 +1,3 @@
-// electron/main.js
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
@@ -17,7 +16,9 @@ function createWindow() {
   if (isDev) {
     win.loadURL('http://localhost:5173');
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'));
+    // 🔥 use app.getAppPath() em vez de __dirname
+    const indexPath = path.join(app.getAppPath(), 'dist', 'index.html');
+    win.loadFile(indexPath);
   }
 }
 
