@@ -5,18 +5,19 @@ const isDev = !app.isPackaged;
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    width: 1280,
+    height: 800,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     }
   });
+  win.setMenuBarVisibility(false);
 
   if (isDev) {
     win.loadURL('http://localhost:5173');
   } else {
-    // 🔥 use app.getAppPath() em vez de __dirname
+    // use app.getAppPath() em vez de __dirname
     const indexPath = path.join(app.getAppPath(), 'dist', 'index.html');
     win.loadFile(indexPath);
   }

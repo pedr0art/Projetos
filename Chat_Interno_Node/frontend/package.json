@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "description": "Aplicação de chat interno com Electron e React",
-  "author": "Seu Nome ou Equipe",
+  "author": "",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {

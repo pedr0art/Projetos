@@ -1,9 +1,10 @@
-import { HashRouter as Router, Routes, Route } from 'react-router-dom'; // trocado BrowserRouter por HashRouter
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RoomsPage from './pages/RoomsPage'; 
 import ChatRoomPage from './pages/ChatRoomPage';
 import RegisterPage from './pages/RegisterPage';
+import MainLayout from './layout/MainLayout';
 
 function App() {
   return (
@@ -12,8 +13,12 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/rooms" element={<RoomsPage />} />
-          <Route path="/chat/:id" element={<ChatRoomPage />} />
+          
+          {/* Rotas protegidas ou com layout comum */}
+          <Route element={<MainLayout />}>
+            <Route path="/rooms" element={<RoomsPage />} />
+            <Route path="/chat/:id" element={<ChatRoomPage />} />
+          </Route>
         </Routes>
       </Router>
     </AuthProvider>
