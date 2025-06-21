@@ -16,11 +16,11 @@ module.exports = (io) => {
     });
 
     io.on('connection', (socket) => {
-        console.log(`🟢 Usuário conectado: ${socket.user.username}`);
+        console.log(`🟢 Usuário conectado: ${socket.user.username}`); // <-- Mudança
 
         socket.on('joinRoom', (roomId) => {
             socket.join(roomId);
-            console.log(`${socket.user.username} entrou na sala ${roomId}`);
+            console.log(`${socket.user.username} entrou na sala ${roomId}`); // <-- Mudança
         });
 
         socket.on('sendMessage', async ({ roomId, message }) => {
@@ -33,18 +33,19 @@ module.exports = (io) => {
 
                 const savedMessage = result.rows[0];
 
-                // Busca o username do remetente
+                // Busca o full_name do remetente
                 const userResult = await pool.query(
-                    'SELECT username FROM users WHERE id = $1',
+                    'SELECT full_name FROM users WHERE id = $1',
                     [savedMessage.sender_id]
                 );
 
-                const senderUsername = userResult.rows[0].username;
+                const senderFullName = userResult.rows[0].full_name;
 
                 // Emite a mensagem com o nome do remetente
                 io.to(roomId).emit('receiveMessage', {
                     message: savedMessage.content,
-                    sender: senderUsername, // ✅ agora o frontend reconhece como sua
+                    sender: senderFullName, // <-- Mudança
+                    sender_id: savedMessage.sender_id,
                     roomId: savedMessage.room_id,
                     createdAt: savedMessage.created_at
                 });
@@ -53,9 +54,8 @@ module.exports = (io) => {
             }
         });
 
-
         socket.on('disconnect', () => {
-            console.log(`🔴 ${socket.user.username} desconectado`);
+            console.log(`🔴 ${socket.user.username} desconectado`); // <-- Mudança
         });
     });
 };

@@ -2,8 +2,8 @@
 .chat-page-container {
     display: flex;
     flex-direction: column;
-    height: calc(85vh - 60px); /* Desconta a altura do header */
-    margin-top: 60px; /* Espaço para o header fixo */
+    height: calc(85vh - 60px);
+    margin-top: 60px;
     width: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f5f5;
@@ -55,10 +55,19 @@
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.add-user-header {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+.add-user-button {
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.add-user-button:hover {
+    background-color: #4cae4c;
 }
 
 .chat-messages-container {
@@ -68,8 +77,9 @@
     flex-direction: column;
     background-color: #8CA792;
     position: relative;
-    min-height: 0; /* 🔧 importante para permitir que o flex item com overflow funcione corretamente */
+    min-height: 0;
 }
+
 .chat-messages {
     flex: 1;
     overflow-y: auto;
@@ -77,7 +87,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    /* padding-bottom: 70px; Remova esta linha */
 }
 
 .message {
@@ -123,9 +132,9 @@
     padding: 10px 15px;
     background-color: white;
     border-top: 1px solid #ddd;
-    position: sticky; /* Alterado para sticky */
-    bottom: 0; /* Fixa na parte inferior */
-    z-index: 10; /* Garante que fique acima do conteúdo */
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
 }
 
 .chat-input {
@@ -159,25 +168,6 @@
     background-color: #263C2B;
 }
 
-.user-input {
-    padding: 6px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-    font-size: 0.9rem;
-    min-width: 120px;
-}
-
-.add-button {
-    background-color: #5cb85c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
 .feedback-message {
     margin: 8px;
     padding: 6px 10px;
@@ -186,4 +176,110 @@
     color: #3c763d;
     font-size: 0.85rem;
     text-align: center;
+}
+
+/* Modal */
+
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+}
+
+.user-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.sector-select {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.user-list {
+    background: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 4px;
+}
+
+.user-list-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.user-list-item:hover {
+    background-color: #f0f0f0;
+}
+
+.user-list-item.selected {
+    background-color: #d0ebff;
+    font-weight: bold;
+}
+
+.user-list-item.no-user {
+    color: #999;
+    font-style: italic;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.modal-buttons button:first-child {
+    background-color: #5cb85c;
+    color: white;
+}
+
+.modal-buttons button:first-child:hover {
+    background-color: #4cae4c;
+}
+
+.modal-buttons button:last-child {
+    background-color: #ccc;
+    color: #333;
+}
+
+.modal-buttons button:last-child:hover {
+    background-color: #bbb;
 }

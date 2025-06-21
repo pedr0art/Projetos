@@ -9,3 +9,4 @@ exports.getAllSectors = async (req, res) => {
         res.status(500).json({ error: 'Erro ao buscar setores' });
     }
 };
+    

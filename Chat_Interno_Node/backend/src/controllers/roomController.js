@@ -42,10 +42,10 @@ exports.deleteRoom = async (req, res) => {
 
 exports.addUserToRoom = async (req, res) => {
     const roomId = req.params.id;
-    const { username } = req.body;
+    const { full_name } = req.body; // <-- Mudança: espera full_name agora
 
     try {
-        const userRes = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+        const userRes = await pool.query('SELECT id FROM users WHERE full_name = $1', [full_name]); // <-- Mudança
 
         if (userRes.rows.length === 0) {
             return res.status(404).json({ error: 'Usuário não encontrado' });
