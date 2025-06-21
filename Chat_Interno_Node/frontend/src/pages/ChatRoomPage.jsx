@@ -144,7 +144,9 @@ export default function ChatRoomPage() {
                 key={index}
                 className={`message ${isMyMessage ? 'message-sent' : 'message-received'}`}
                 >
-                <div className="message-sender">{msg.sender || user.full_name}</div>
+                <div className="message-sender">
+                    {msg.sender || user.full_name} {msg.sector_name ? `(${msg.sector_name})` : ''}
+                </div>
                 <div className="message-content">{msg.message || msg.content}</div>
                 <div className="message-time">
                     {new Date(msg.created_at || Date.now()).toLocaleTimeString([], {
