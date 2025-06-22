@@ -136,27 +136,27 @@ export default function ChatRoomPage() {
 
         <div className="chat-messages-container">
           <div className="chat-messages">
-            {messages.map((msg, index) => {
-            const isMyMessage = msg.sender_id === user.id;
+        {messages.map((msg, index) => {
+        const isMyMessage = msg.sender_id === user.id;
 
-            return (
-                <div
-                key={index}
-                className={`message ${isMyMessage ? 'message-sent' : 'message-received'}`}
-                >
-                <div className="message-sender">
-                    {msg.sender || user.full_name} {msg.sector_name ? `(${msg.sector_name})` : ''}
-                </div>
-                <div className="message-content">{msg.message || msg.content}</div>
-                <div className="message-time">
-                    {new Date(msg.created_at || Date.now()).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    })}
-                </div>
-                </div>
-            );
-            })}
+        return (
+            <div
+            key={index}
+            className={`message ${isMyMessage ? 'message-sent' : 'message-received'}`}
+            >
+            <div className="message-sender">
+                {msg.sender || user.full_name} {msg.sector_name ? `(${msg.sector_name})` : ''}
+            </div>
+            <div className="message-content">{msg.message || msg.content}</div>
+            <div className="message-time">
+                {new Date(msg.created_at || Date.now()).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                })}
+            </div>
+            </div>
+        );
+        })}
 
 
             <div ref={messagesEndRef} />

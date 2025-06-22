@@ -88,3 +88,16 @@
   background-color: #f44336;
   color: white;
 }
+.user-list-item.online {
+  font-weight: bold;
+  color: green;
+}
+
+.user-list-item.offline {
+  color: gray;
+}
+
+.status-indicator {
+  margin-left: 8px;
+  font-size: 0.8em;
+}

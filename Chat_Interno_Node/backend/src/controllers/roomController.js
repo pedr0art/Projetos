@@ -1,14 +1,15 @@
 const roomService = require('../services/roomService');
-const pool = require('../config/db'); // <-- necessário para funcionar o pool.query
+const pool = require('../config/db');
 
 exports.createRoom = async (req, res) => {
-    const { name, is_group } = req.body;
+    const { name, is_group, users } = req.body;  // <-- Agora espera um array de IDs de usuários
     const userId = req.user.id;
 
     try {
-        const room = await roomService.createRoom(name, is_group, userId);
+        const room = await roomService.createRoom(name, is_group, userId, users);
         res.status(201).json(room);
     } catch (err) {
+        console.error('Erro ao criar sala:', err);
         res.status(400).json({ error: err.message });
     }
 };
@@ -35,17 +36,17 @@ exports.deleteRoom = async (req, res) => {
         );
         res.status(204).send();
     } catch (err) {
-        console.error(err); // ← útil para debug no terminal
+        console.error(err);
         res.status(500).json({ error: 'Erro ao deletar sala' });
     }
 };
 
 exports.addUserToRoom = async (req, res) => {
     const roomId = req.params.id;
-    const { full_name } = req.body; // <-- Mudança: espera full_name agora
+    const { full_name } = req.body;
 
     try {
-        const userRes = await pool.query('SELECT id FROM users WHERE full_name = $1', [full_name]); // <-- Mudança
+        const userRes = await pool.query('SELECT id FROM users WHERE full_name = $1', [full_name]);
 
         if (userRes.rows.length === 0) {
             return res.status(404).json({ error: 'Usuário não encontrado' });
@@ -64,3 +65,4 @@ exports.addUserToRoom = async (req, res) => {
         res.status(500).json({ error: 'Erro ao adicionar usuário à sala' });
     }
 };
+    

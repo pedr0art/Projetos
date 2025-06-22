@@ -1,31 +1,56 @@
 const pool = require('../config/db');
 
-exports.createRoom = async (name, isGroup, userId) => {
-    const roomRes = await pool.query(
-        'INSERT INTO rooms (name, is_group) VALUES ($1, $2) RETURNING *',
-        [name, isGroup]
-    );
+exports.createRoom = async (name, isGroup, creatorId, userIds = []) => {
+    const client = await pool.connect();
 
-    const room = roomRes.rows[0];
+    try {
+        await client.query('BEGIN');
 
-    await pool.query(
-        'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2)',
-        [userId, room.id]
-    );
+        // Criar a sala
+        const roomRes = await client.query(
+            'INSERT INTO rooms (name, is_group) VALUES ($1, $2) RETURNING *',
+            [name, isGroup]
+        );
 
-    return room;
+        const room = roomRes.rows[0];
+
+        // Adicionar o criador da sala
+        await client.query(
+            'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2)',
+            [creatorId, room.id]
+        );
+
+        // Adicionar os demais usuários (se tiver)
+        for (const userId of userIds) {
+            // Evitar duplicar o criador
+            if (userId !== creatorId) {
+                await client.query(
+                    'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+                    [userId, room.id]
+                );
+            }
+        }
+
+        await client.query('COMMIT');
+        return room;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 exports.getUserRooms = async (userId) => {
     const result = await pool.query(
         `
-    SELECT 
-      r.*, 
-      (SELECT COUNT(*) FROM user_rooms ur2 WHERE ur2.room_id = r.id) AS member_count
-    FROM rooms r
-    JOIN user_rooms ur ON ur.room_id = r.id
-    WHERE ur.user_id = $1
-    `,
+        SELECT 
+            r.*, 
+            (SELECT COUNT(*) FROM user_rooms ur2 WHERE ur2.room_id = r.id) AS member_count
+        FROM rooms r
+        JOIN user_rooms ur ON ur.room_id = r.id
+        WHERE ur.user_id = $1
+        `,
         [userId]
     );
 
