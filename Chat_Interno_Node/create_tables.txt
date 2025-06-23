@@ -1,55 +1,39 @@
-------------------------------
-CREATE TABLE IF NOT EXISTS public.messages
+-- CRIAR AS SEQUENCES PRIMEIRO
+
+CREATE SEQUENCE IF NOT EXISTS messages_id_seq;
+CREATE SEQUENCE IF NOT EXISTS rooms_id_seq;
+CREATE SEQUENCE IF NOT EXISTS sector_sector_id_seq;
+CREATE SEQUENCE IF NOT EXISTS users_id_seq;
+
+-- TABELA: sector
+CREATE TABLE IF NOT EXISTS public.sector
 (
-    id integer NOT NULL DEFAULT nextval('messages_id_seq'::regclass),
-    content text COLLATE pg_catalog."default" NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    sender_id integer NOT NULL,
-    room_id integer NOT NULL,
-    CONSTRAINT messages_pkey PRIMARY KEY (id),
-    CONSTRAINT messages_room_id_fkey FOREIGN KEY (room_id)
-        REFERENCES public.rooms (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
-    CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id)
-        REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE
-)
+    sector_id integer NOT NULL DEFAULT nextval('sector_sector_id_seq'::regclass),
+    sector_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    sector_abbreviation text COLLATE pg_catalog."default",
+    CONSTRAINT sector_pkey PRIMARY KEY (sector_id)
+);
 
-TABLESPACE pg_default;
+ALTER TABLE IF EXISTS public.sector OWNER TO root;
 
-ALTER TABLE IF EXISTS public.messages
-    OWNER to root;
---------------------------------
-
-CREATE TABLE IF NOT EXISTS public.room_metadata
+-- TABELA: users
+CREATE TABLE IF NOT EXISTS public.users
 (
-    room_id integer NOT NULL,
+    id integer NOT NULL DEFAULT nextval('users_id_seq'::regclass),
+    username character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    password_hash text COLLATE pg_catalog."default" NOT NULL,
     sector_id integer,
-    owner_id integer,
-    is_active boolean DEFAULT true,
-    CONSTRAINT room_metadata_pkey PRIMARY KEY (room_id),
-    CONSTRAINT room_metadata_owner_id_fkey FOREIGN KEY (owner_id)
-        REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT room_metadata_room_id_fkey FOREIGN KEY (room_id)
-        REFERENCES public.rooms (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
-    CONSTRAINT room_metadata_sector_id_fkey FOREIGN KEY (sector_id)
+    full_name text COLLATE pg_catalog."default",
+    CONSTRAINT users_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_sector FOREIGN KEY (sector_id)
         REFERENCES public.sector (sector_id) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-)
+        ON DELETE SET NULL
+);
 
-TABLESPACE pg_default;
+ALTER TABLE IF EXISTS public.users OWNER TO root;
 
-ALTER TABLE IF EXISTS public.room_metadata
-    OWNER to root;
--------------------------------------
-
+-- TABELA: rooms
 CREATE TABLE IF NOT EXISTS public.rooms
 (
     id integer NOT NULL DEFAULT nextval('rooms_id_seq'::regclass),
@@ -78,30 +62,56 @@ CREATE TABLE IF NOT EXISTS public.rooms
         REFERENCES public.sector (sector_id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
-)
+);
 
-TABLESPACE pg_default;
+ALTER TABLE IF EXISTS public.rooms OWNER TO root;
 
-ALTER TABLE IF EXISTS public.rooms
-    OWNER to root;
-
----------------------------------------------
-
-CREATE TABLE IF NOT EXISTS public.sector
+-- TABELA: room_metadata
+CREATE TABLE IF NOT EXISTS public.room_metadata
 (
-    sector_id integer NOT NULL DEFAULT nextval('sector_sector_id_seq'::regclass),
-    sector_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    sector_abbreviation text COLLATE pg_catalog."default",
-    CONSTRAINT sector_pkey PRIMARY KEY (sector_id)
-)
+    room_id integer NOT NULL,
+    sector_id integer,
+    owner_id integer,
+    is_active boolean DEFAULT true,
+    CONSTRAINT room_metadata_pkey PRIMARY KEY (room_id),
+    CONSTRAINT room_metadata_owner_id_fkey FOREIGN KEY (owner_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT room_metadata_room_id_fkey FOREIGN KEY (room_id)
+        REFERENCES public.rooms (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT room_metadata_sector_id_fkey FOREIGN KEY (sector_id)
+        REFERENCES public.sector (sector_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+);
 
-TABLESPACE pg_default;
+ALTER TABLE IF EXISTS public.room_metadata OWNER TO root;
 
-ALTER TABLE IF EXISTS public.sector
-    OWNER to root;
+-- TABELA: messages
+CREATE TABLE IF NOT EXISTS public.messages
+(
+    id integer NOT NULL DEFAULT nextval('messages_id_seq'::regclass),
+    content text COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    sender_id integer NOT NULL,
+    room_id integer NOT NULL,
+    CONSTRAINT messages_pkey PRIMARY KEY (id),
+    CONSTRAINT messages_room_id_fkey FOREIGN KEY (room_id)
+        REFERENCES public.rooms (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+);
 
---------------------------------------------
+ALTER TABLE IF EXISTS public.messages OWNER TO root;
 
+-- TABELA: user_rooms
 CREATE TABLE IF NOT EXISTS public.user_rooms
 (
     user_id integer NOT NULL,
@@ -115,32 +125,10 @@ CREATE TABLE IF NOT EXISTS public.user_rooms
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE CASCADE
-)
+);
 
-TABLESPACE pg_default;
+ALTER TABLE IF EXISTS public.user_rooms OWNER TO root;
 
-ALTER TABLE IF EXISTS public.user_rooms
-    OWNER to root;
----------------------------------------
-
-CREATE TABLE IF NOT EXISTS public.users
-(
-    id integer NOT NULL DEFAULT nextval('users_id_seq'::regclass),
-    username character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    password_hash text COLLATE pg_catalog."default" NOT NULL,
-    sector_id integer,
-    full_name text COLLATE pg_catalog."default",
-    CONSTRAINT users_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_sector FOREIGN KEY (sector_id)
-        REFERENCES public.sector (sector_id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE SET NULL
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.users
-    OWNER to root;
 
 ---------------------------------------------------------------
 
@@ -158,7 +146,7 @@ INSERIR NA TABELA PRINCIPAL
 
 
 INSERT INTO users (username, sector_id, password_hash)
-SELECT username, sector_id, crypt('123456', gen_salt('bf'))
+SELECT username, sector_id, crypt('iterma@2025', gen_salt('bf'))
 FROM temp_users;
 
 ---------------------------------------------------------
