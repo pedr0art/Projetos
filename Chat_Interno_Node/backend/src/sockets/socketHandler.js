@@ -33,18 +33,23 @@ module.exports = (io) => {
 
                 const savedMessage = result.rows[0];
 
-                // Busca o full_name do remetente
                 const userResult = await pool.query(
-                    'SELECT full_name FROM users WHERE id = $1',
-                    [savedMessage.sender_id]
+                `SELECT u.full_name, s.sector_name
+                FROM users u
+                LEFT JOIN sector s ON u.sector_id = s.sector_id
+                WHERE u.id = $1`,
+                [savedMessage.sender_id]
                 );
 
                 const senderFullName = userResult.rows[0].full_name;
+                const senderSector = userResult.rows[0].sector_name;
+
 
                 // Emite a mensagem com o nome do remetente
                 io.to(roomId).emit('receiveMessage', {
                     message: savedMessage.content,
                     sender: senderFullName, // <-- Mudança
+                    sector_name: senderSector,
                     sender_id: savedMessage.sender_id,
                     roomId: savedMessage.room_id,
                     createdAt: savedMessage.created_at

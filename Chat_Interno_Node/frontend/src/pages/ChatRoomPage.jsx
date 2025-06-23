@@ -129,9 +129,11 @@ export default function ChatRoomPage() {
           </button>
           <h2>Chat da Sala {id}</h2>
 
+        {(user.sector_id === 29 || user.sector_id === 6) && (
           <button className="add-user-button" onClick={() => setIsModalOpen(true)}>
             Adicionar usuário
           </button>
+        )}
         </div>
 
         <div className="chat-messages-container">
@@ -145,7 +147,7 @@ export default function ChatRoomPage() {
             className={`message ${isMyMessage ? 'message-sent' : 'message-received'}`}
             >
             <div className="message-sender">
-                {msg.sender || user.full_name} {msg.sector_name ? `(${msg.sector_name})` : ''}
+                {msg.sender} {msg.sector_name ? `(${msg.sector_name})` : ''}
             </div>
             <div className="message-content">{msg.message || msg.content}</div>
             <div className="message-time">

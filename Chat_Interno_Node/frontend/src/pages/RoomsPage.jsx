@@ -165,12 +165,14 @@ export default function RoomsPage() {
             <h3>Criar Nova Sala</h3>
 
             <input
+              className="user-input"
               placeholder="Nome da sala"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
             />
 
             <select
+              className="sector-select"
               value={isGroup ? 'grupo' : 'privada'}
               onChange={(e) => setIsGroup(e.target.value === 'grupo')}
             >

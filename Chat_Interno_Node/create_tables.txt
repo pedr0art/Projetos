@@ -48,7 +48,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.room_metadata
     OWNER to root;
-
 -------------------------------------
 
 CREATE TABLE IF NOT EXISTS public.rooms
@@ -92,6 +91,7 @@ CREATE TABLE IF NOT EXISTS public.sector
 (
     sector_id integer NOT NULL DEFAULT nextval('sector_sector_id_seq'::regclass),
     sector_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    sector_abbreviation text COLLATE pg_catalog."default",
     CONSTRAINT sector_pkey PRIMARY KEY (sector_id)
 )
 
@@ -121,7 +121,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.user_rooms
     OWNER to root;
-
 ---------------------------------------
 
 CREATE TABLE IF NOT EXISTS public.users
@@ -130,6 +129,7 @@ CREATE TABLE IF NOT EXISTS public.users
     username character varying(255) COLLATE pg_catalog."default" NOT NULL,
     password_hash text COLLATE pg_catalog."default" NOT NULL,
     sector_id integer,
+    full_name text COLLATE pg_catalog."default",
     CONSTRAINT users_pkey PRIMARY KEY (id),
     CONSTRAINT fk_sector FOREIGN KEY (sector_id)
         REFERENCES public.sector (sector_id) MATCH SIMPLE
@@ -141,3 +141,28 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.users
     OWNER to root;
+
+---------------------------------------------------------------
+
+TEMP_USERS
+
+
+CREATE TABLE temp_users (
+    username TEXT,
+    sector_id INTEGER
+);
+
+-------------------------------------------------------------
+
+INSERIR NA TABELA PRINCIPAL
+
+
+INSERT INTO users (username, sector_id, password_hash)
+SELECT username, sector_id, crypt('123456', gen_salt('bf'))
+FROM temp_users;
+
+---------------------------------------------------------
+
+EXTENSÃO PGCRYPTO
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
