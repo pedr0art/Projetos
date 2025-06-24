@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import io from 'socket.io-client';
 import Header from '../components/Header';
 import './RoomsPage.css';
+
 
 export default function RoomsPage() {
   const { token, user, logout } = useAuth();
@@ -20,6 +22,36 @@ export default function RoomsPage() {
 
   useEffect(() => {
     fetchRooms();
+  }, [token]);
+  useEffect(() => {
+    if (!token) return;
+
+    const socket = io(import.meta.env.VITE_SOCKET_URL, {
+      auth: { token }
+    });
+
+    socket.on('connect', () => {
+      console.log('✅ Conectado ao socket na RoomsPage');
+    });
+
+    socket.on('roomAdded', () => {
+      console.log('📥 Recebido evento roomAdded');
+      fetchRooms();  // Atualiza as salas automaticamente
+    if (window.electronAPI) {
+      window.electronAPI.notify({
+        title: 'Nova conversa',
+        body: 'Você foi adicionado a uma nova sala de chat.',
+      });
+    }
+    });
+
+    socket.on('disconnect', () => {
+      console.log('🔌 Socket desconectado da RoomsPage');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [token]);
 
   const fetchRooms = async () => {
@@ -110,7 +142,9 @@ export default function RoomsPage() {
   return (
     <>
       <Header full_name={user?.full_name} />
+      
       <div className="rooms-container">
+
         <div className="rooms-header">
           <h2>Minhas Salas</h2>
           <button onClick={handleLogout}>Sair</button>
@@ -133,7 +167,10 @@ export default function RoomsPage() {
                 </div>
                 <div>
                   <button onClick={() => entrarNaSala(room.id)}>Entrar</button>
-                  <button onClick={() => excluirSala(room.id)}>Excluir</button>
+                  
+                  {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
+                    <button onClick={() => excluirSala(room.id)}>Excluir</button>
+                  )}
                 </div>
               </li>
             ))}
@@ -151,7 +188,10 @@ export default function RoomsPage() {
                 </div>
                 <div>
                   <button onClick={() => entrarNaSala(room.id)}>Entrar</button>
-                  <button onClick={() => excluirSala(room.id)}>Excluir</button>
+
+                  {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
+                    <button onClick={() => excluirSala(room.id)}>Excluir</button>
+                  )}
                 </div>
               </li>
             ))}
@@ -159,6 +199,11 @@ export default function RoomsPage() {
         </div>
       </div>
 
+      {(user?.sector_id === 29 || user?.sector?.sector_id === 29) && (
+        <p style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <Link to="/register">Cadastrar novo usuário</Link>
+        </p>
+      )}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">

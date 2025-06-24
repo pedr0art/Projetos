@@ -4,6 +4,8 @@ const cors = require('cors');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
+const authenticateToken = require('./middlewares/authMiddleware'); // Importa o middleware
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -16,7 +18,12 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Rotas
+// Rota protegida para retornar dados do usuário autenticado
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+    res.json({ user: req.user });
+});
+
+// Rotas públicas ou outras rotas da aplicação
 app.use('/api', require('./routes'));
 
 // WebSocket

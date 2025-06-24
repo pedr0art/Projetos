@@ -116,6 +116,13 @@ export default function RegisterPage() {
             ))}
           </select>
           <button type="submit">Criar conta</button>
+          <button
+            type="button"
+            onClick={() => navigate('/rooms')}
+            className="cancel-button"
+          >
+            Cancelar
+        </button>
         </form>
       </div>
     </>

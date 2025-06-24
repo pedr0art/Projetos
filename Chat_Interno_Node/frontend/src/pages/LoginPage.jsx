@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
-import './LoginPage.css'; // <- Importando o CSS local
+import { useNavigate } from 'react-router-dom';
+import './LoginPage.css';
 import Header from '../components/Header';
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  // ✅ Se já estiver logado, redireciona direto para Rooms
+  useEffect(() => {
+    if (user) navigate('/rooms');
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,7 +24,7 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, form);
-      login(res.data);
+      login(res.data); // Salva token e user
       navigate('/rooms');
     } catch (err) {
       setError('Usuário ou senha inválidos');
@@ -35,7 +40,6 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <input name="username" placeholder="Usuário" onChange={handleChange} required />
           <input name="password" type="password" placeholder="Senha" onChange={handleChange} required />
-          <p>Não tem conta? <Link to="/register">Registre-se</Link></p>
           <button type="submit">Entrar</button>
         </form>
       </div>

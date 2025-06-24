@@ -20,3 +20,9 @@ exports.login = async (req, res) => {
         res.status(401).json({ error: err.message });
     }
 };
+
+exports.me = (req, res) => {
+  // req.user já contém os dados decodificados do token (id, username, full_name, sector_id etc)
+  res.json({ user: req.user });
+};
+

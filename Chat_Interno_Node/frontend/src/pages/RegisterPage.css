@@ -26,3 +26,16 @@
 .register-container p {
   margin-top: 12px;
 }
+
+button.cancel-button {
+  background-color: gray;
+  border-color: transparent;
+  margin-left: 20px;
+  background-color: gray;
+  cursor: pointer;
+}
+
+button.cancel-button:hover {
+  background-color: #555; /* cor diferente no hover, mais escura que cinza */
+  border-color: #444;
+}

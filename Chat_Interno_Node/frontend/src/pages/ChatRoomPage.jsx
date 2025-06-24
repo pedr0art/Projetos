@@ -9,7 +9,7 @@ export default function ChatRoomPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token, user } = useAuth();
-
+  const [roomName, setRoomName] = useState('');
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -32,9 +32,18 @@ export default function ChatRoomPage() {
       .then((res) => setMessages(res.data))
       .catch((err) => console.error('Erro ao buscar histórico:', err));
   }, [id, token]);
-
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/rooms/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setRoomName(res.data.name))
+      .catch((err) => console.error('Erro ao buscar nome da sala:', err));
+  }, [id, token]);
   // Conectar socket
   useEffect(() => {
+    if (!user?.id) return; // só conecta quando tiver o user.id
+
     socketRef.current = io(import.meta.env.VITE_SOCKET_URL, {
       auth: { token },
     });
@@ -42,13 +51,21 @@ export default function ChatRoomPage() {
     socketRef.current.emit('joinRoom', parseInt(id));
 
     socketRef.current.on('receiveMessage', (msg) => {
+      console.log('📨 Mensagem recebida:', msg, 'Meu ID:', user.id);
       setMessages((prev) => [...prev, msg]);
+
+      if (msg.sender_id !== user.id && window.electronAPI) {
+        window.electronAPI.notify({
+          title: `Nova mensagem de ${msg.sender}`,
+          body: msg.message || msg.content || 'Você recebeu uma nova mensagem',
+        });
+      }
     });
 
     return () => {
       socketRef.current.disconnect();
     };
-  }, [id, token]);
+  }, [id, token, user?.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,7 +144,7 @@ export default function ChatRoomPage() {
           <button className="back-button" onClick={() => navigate('/rooms')}>
             ← Voltar
           </button>
-          <h2>Chat da Sala {id}</h2>
+          <h2>{roomName ? `${roomName}` : 'Carregando...'}</h2>
 
         {(user.sector_id === 29 || user.sector_id === 6) && (
           <button className="add-user-button" onClick={() => setIsModalOpen(true)}>
