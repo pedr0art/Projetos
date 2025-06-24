@@ -2,11 +2,9 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const userController = require('../controllers/userController');
-
-
 const pool = require('../config/db');
 
-// Rota para pegar todos os usuários (você já tem)
+// Rota para pegar todos os usuários
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -22,7 +20,31 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Rota para pegar o usuário atual (adicionar esta)
+// Rota para pegar o usuário atual
 router.get('/me', authMiddleware, userController.getCurrentUser);
+
+// Rota para pegar todas as salas do usuário (para o socket join)
+router.get('/:id/rooms', authMiddleware, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+
+    if (req.user.id !== userId) {
+      return res.status(403).json({ error: 'Acesso negado' });
+    }
+
+    const result = await pool.query(
+      `SELECT r.id, r.name
+       FROM rooms r
+       JOIN user_rooms ur ON ur.room_id = r.id
+       WHERE ur.user_id = $1`,
+      [userId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar salas do usuário:', err);
+    res.status(500).json({ error: 'Erro interno' });
+  }
+});
 
 module.exports = router;

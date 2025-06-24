@@ -1,9 +1,9 @@
 const pool = require('../config/db');
-
+const { onlineUsers } = require('../sockets/socketHandler'); 
 exports.getCurrentUser = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT u.id, u.full_name, s.sector_name
+      SELECT u.id, u.full_name, u.sector_id, s.sector_name, u.is_online
       FROM users u
       LEFT JOIN sector s ON s.sector_id = u.sector_id
       WHERE u.id = $1
@@ -14,5 +14,20 @@ exports.getCurrentUser = async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Erro ao buscar usuário' });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.full_name, u.sector_id, s.sector_name, u.is_online
+      FROM users u
+      LEFT JOIN sector s ON s.sector_id = u.sector_id
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar usuários:', err);
+    res.status(500).json({ error: 'Erro ao buscar usuários' });
   }
 };

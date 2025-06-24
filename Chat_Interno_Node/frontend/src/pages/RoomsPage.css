@@ -101,3 +101,7 @@
   margin-left: 8px;
   font-size: 0.8em;
 }
+.user-list-item.online {
+  font-weight: bold;
+  color: green;
+}

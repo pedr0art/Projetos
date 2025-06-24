@@ -15,7 +15,7 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [sectors, setSectors] = useState([]);
-  const { login } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,17 +51,17 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         full_name: form.full_name,
         username: form.username,
         password: form.password,
         sector_id: form.sector_id,
       });
 
-      login(res.data);
+      alert('Usuário cadastrado com sucesso!');
       navigate('/rooms');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao registrar usuário');
+      setError(err.response?.data?.error || 'Erro ao registrar usuário');
     }
   };
 
@@ -69,7 +69,7 @@ export default function RegisterPage() {
     <>
       <Header />
       <div className="register-container" style={{ paddingTop: '80px' }}>
-        <h2>Registrar</h2>
+        <h2>Registrar Novo Usuário</h2>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <form onSubmit={handleSubmit}>
           <input
@@ -122,7 +122,7 @@ export default function RegisterPage() {
             className="cancel-button"
           >
             Cancelar
-        </button>
+          </button>
         </form>
       </div>
     </>

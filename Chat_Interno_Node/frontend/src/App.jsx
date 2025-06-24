@@ -6,23 +6,26 @@ import ChatRoomPage from './pages/ChatRoomPage';
 import RegisterPage from './pages/RegisterPage';
 import MainLayout from './layout/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
+import { SocketProvider } from './context/SocketContext';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Rotas protegidas ou com layout comum */}
-          <Route element={<PrivateRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/rooms" element={<RoomsPage />} />
-              <Route path="/chat/:id" element={<ChatRoomPage />} />
+      <SocketProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            {/* Rotas protegidas ou com layout comum */}
+            <Route element={<PrivateRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/rooms" element={<RoomsPage />} />
+                <Route path="/chat/:id" element={<ChatRoomPage />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </Router>
+          </Routes>
+        </Router>
+      </SocketProvider>
     </AuthProvider>
   );
 }

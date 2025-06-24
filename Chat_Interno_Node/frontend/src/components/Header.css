@@ -4,7 +4,7 @@
   background-color: #8CA792;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* mantém espaço entre esquerda e direita */
   padding: 0 20px;
   box-sizing: border-box;
   position: fixed;
@@ -13,10 +13,15 @@
   z-index: 1000;
 }
 
+.left-side {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* espaço entre logo e texto */
+}
+
 .logo {
   height: 35px;
 }
-
 
 .user-info {
   font-size: 1rem;
