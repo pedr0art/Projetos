@@ -8,7 +8,7 @@ export default function Header({ user }) {
 
   const u = user || contextUser || {};
 
-  const displayName = u.full_name || 'Usuário';
+  const displayName = u.full_name || '';
   const displaySector = u.sector_name ? `(${u.sector_name})` : '';
 
   return (
