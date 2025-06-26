@@ -40,7 +40,6 @@ exports.createRoom = async (name, isGroup, creatorId, userIds = []) => {
         client.release();
     }
 };
-
 exports.getUserRooms = async (userId) => {
     const result = await pool.query(
         `
@@ -50,6 +49,7 @@ exports.getUserRooms = async (userId) => {
         FROM rooms r
         JOIN user_rooms ur ON ur.room_id = r.id
         WHERE ur.user_id = $1
+          AND r.is_finished = false
         `,
         [userId]
     );

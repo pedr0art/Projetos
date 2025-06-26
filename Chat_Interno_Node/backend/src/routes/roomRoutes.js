@@ -7,7 +7,7 @@ const roomController = require('../controllers/roomController');
 router.post('/', auth, roomController.createRoom);
 router.get('/', auth, roomController.getUserRooms);
 router.get('/:id', auth, roomController.getRoomById);
-router.delete('/:id', auth, roomController.deleteRoom);
+router.patch('/:id/finish', auth, roomController.finishRoom);
 router.post('/:id/add', auth, roomController.addUserToRoom);
 
 

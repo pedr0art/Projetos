@@ -3,7 +3,7 @@ const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
 const userController = require('../controllers/userController');
 const pool = require('../config/db');
-
+const { getOnlineUsers } = require('../sockets/socketHandler');
 // Rota para pegar todos os usuários
 router.get('/', async (req, res) => {
   try {
@@ -46,5 +46,13 @@ router.get('/:id/rooms', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Erro interno' });
   }
 });
-
+router.get('/online-users', authMiddleware, async (req, res) => {
+  try {
+    const usersOnline = await getOnlineUsers();
+    res.json(usersOnline);
+  } catch (error) {
+    console.error('Erro ao buscar usuários online:', error);
+    res.status(500).json({ error: 'Erro ao buscar usuários online' });
+  }
+});
 module.exports = router;

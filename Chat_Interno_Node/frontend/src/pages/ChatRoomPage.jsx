@@ -1,3 +1,4 @@
+// ChatRoomPage.jsx
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +10,13 @@ export default function ChatRoomPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token, user } = useAuth();
-  const { socket, setCurrentRoomId, addMessageListener, removeMessageListener } = useSocket();
+  const {
+    socket,
+    allOnlineUsers,
+    setCurrentRoomId,
+    addMessageListener,
+    removeMessageListener,
+  } = useSocket();
 
   const [roomName, setRoomName] = useState('');
   const [messages, setMessages] = useState([]);
@@ -20,12 +27,11 @@ export default function ChatRoomPage() {
   const [filterText, setFilterText] = useState('');
   const [filterSector, setFilterSector] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
-  const [onlineUserIds, setOnlineUserIds] = useState([]);
-  
+  const [roomInfo, setRoomInfo] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const messagesEndRef = useRef(null);
 
-  // Buscar histórico de mensagens
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/rooms/${id}/messages`, {
@@ -35,24 +41,35 @@ export default function ChatRoomPage() {
       .catch((err) => console.error('Erro ao buscar histórico:', err));
   }, [id, token]);
 
-  // Buscar nome da sala
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/rooms/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setRoomName(res.data.name))
-      .catch((err) => console.error('Erro ao buscar nome da sala:', err));
-  }, [id, token]);
+      .then((res) => {
+        const room = res.data;
+        setRoomName(room.name);
+        setRoomInfo(room);
 
-  // Atualizar currentRoomId no contexto e juntar a escuta das mensagens em tempo real
+      if (room.is_finished) {
+        alert('Esta sala foi finalizada. Você será redirecionado.');
+        navigate('/rooms');
+      }
+
+      })
+    .catch((err) => {
+      console.error('Erro ao buscar nome da sala:', err);
+      alert('Erro ao carregar sala. Redirecionando...');
+      navigate('/rooms');
+    });
+}, [id, token, navigate]);
+
   useEffect(() => {
     if (!socket || !user?.id) return;
 
     socket.emit('joinRoom', parseInt(id));
     setCurrentRoomId(id);
 
-    // Listener que atualiza mensagens se for da sala atual
     const handleMessage = (msg) => {
       if (msg.roomId === parseInt(id)) {
         setMessages((prev) => [...prev, msg]);
@@ -60,24 +77,17 @@ export default function ChatRoomPage() {
     };
 
     addMessageListener(handleMessage);
-    const handleUpdateOnlineUsers = (users) => {
-      console.log('📡 (ChatRoomPage) Lista de usuários online atualizada:', users);
-      const onlineIds = users.filter((u) => u.is_online).map((u) => u.id);
-      setOnlineUserIds(onlineIds);
-    };
-    socket.on('updateOnlineUsers', handleUpdateOnlineUsers);
+
     return () => {
       removeMessageListener(handleMessage);
       setCurrentRoomId(null);
     };
-  }, [id, socket, user?.id, setCurrentRoomId, addMessageListener, removeMessageListener]);
+  }, [id, socket, user?.id]);
 
-  // Scroll automático para o fim das mensagens
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Buscar usuários e setores para modal
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/api/users`, {
@@ -135,8 +145,9 @@ export default function ChatRoomPage() {
       setFeedback('Erro ao adicionar usuário.');
     }
   };
-  const userIdsNaSala = [...new Set(messages.map((msg) => msg.sender_id))];
-  // Filtrar usuários por nome e setor
+
+  const userIdsNaSala = roomInfo?.users?.map((u) => u.id) || [];
+
   const filteredUsers = allUsers.filter((u) => {
     const matchName = u.full_name.toLowerCase().includes(filterText.toLowerCase());
     const matchSector = filterSector ? u.sector_id === parseInt(filterSector) : true;
@@ -145,9 +156,6 @@ export default function ChatRoomPage() {
     return matchName && matchSector && notSelf && notInRoom;
   });
 
-  // Modal open state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <div className="chat-page-container">
       <div className="chat-container">
@@ -155,9 +163,9 @@ export default function ChatRoomPage() {
           <button className="back-button" onClick={() => navigate('/rooms')}>
             ← Voltar
           </button>
-          <h2>{roomName ? `${roomName}` : 'Carregando...'}</h2>
+          <h2>{roomName || 'Carregando...'}</h2>
 
-          {(user.sector_id === 29 || user.sector_id === 6) && (
+          {roomInfo?.is_group && (user.sector_id === 29 || user.sector_id === 6) && (
             <button className="add-user-button" onClick={() => setIsModalOpen(true)}>
               Adicionar usuário
             </button>
@@ -187,7 +195,6 @@ export default function ChatRoomPage() {
                 </div>
               );
             })}
-
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -235,24 +242,26 @@ export default function ChatRoomPage() {
               {filteredUsers.length > 0 ? (
                 [...filteredUsers]
                   .sort((a, b) => {
-                    const aOnline = onlineUserIds.includes(a.id);
-                    const bOnline = onlineUserIds.includes(b.id);
-                    return (bOnline ? 1 : 0) - (aOnline ? 1 : 0);
-                  }) // Online primeiro
-                  .map((u) => (
-                    <div
-                      key={u.id}
-                      className={`user-list-item ${selectedUser?.id === u.id ? 'selected' : ''} ${onlineUserIds.includes(u.id) ? 'online' : ''}`}
-                      onClick={() => setSelectedUser(u)}
-                    >
-                      {u.full_name} ({u.sector_name}) {onlineUserIds.includes(u.id) ? '🟢' : ''}
-                    </div>
-                  ))
+                    const aOnline = allOnlineUsers.some((u) => u.id === a.id);
+                    const bOnline = allOnlineUsers.some((u) => u.id === b.id);
+                    return (aOnline === bOnline) ? 0 : aOnline ? -1 : 1;
+                  })
+                  .map((u) => {
+                    const isOnline = allOnlineUsers.some((ou) => ou.id === u.id);
+                    return (
+                      <div
+                        key={u.id}
+                        className={`user-list-item ${selectedUser?.id === u.id ? 'selected' : ''} ${isOnline ? 'online' : ''}`}
+                        onClick={() => setSelectedUser(u)}
+                      >
+                        {u.full_name} ({u.sector_name}) {isOnline ? '🟢' : ''}
+                      </div>
+                    );
+                  })
               ) : (
                 <div className="user-list-item no-user">Nenhum usuário encontrado.</div>
               )}
             </div>
-
 
             <div className="modal-buttons">
               <button onClick={adicionarUsuario} disabled={!selectedUser}>

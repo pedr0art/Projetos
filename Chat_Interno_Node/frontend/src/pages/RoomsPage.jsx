@@ -15,48 +15,47 @@
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [allUsers, setAllUsers] = useState([]);
-    const [onlineUsers, setOnlineUsers] = useState([]);
+    //const [onlineUsers, setOnlineUsers] = useState([]);
     const [allSectors, setAllSectors] = useState([]);
     const [filterText, setFilterText] = useState('');
     const [filterSector, setFilterSector] = useState('');
     const [selectedUsers, setSelectedUsers] = useState([]);
-
+    const [modoAtendimento, setModoAtendimento] = useState(false)
+    const { socket } = useSocket(); // usa o socket global
+    const { allOnlineUsers } = useSocket();
     useEffect(() => {
       fetchRooms();
     }, [token]);
     useEffect(() => {
-      if (!token) return;
+      if (!token || !socket) return;
 
-      const socket = io(import.meta.env.VITE_SOCKET_URL, {
-        auth: { token }
+      socket.on('roomAdded', (room) => {
+        console.log('📥 Recebido evento roomAdded', room);
+        fetchRooms(); // Atualiza a lista
+
+        socket.emit('joinRoom', room.id); // entra automaticamente na sala nova
+        console.log(`🔗 Entrando automaticamente na sala ${room.id}`);
+
+        if (room.creator_id !== user.id && window.electronAPI) {
+          window.electronAPI.notify({
+            title: 'Nova conversa',
+            body: 'Você foi adicionado a uma nova sala de chat.',
+          });
+        }
       });
 
-      socket.on('connect', () => {
-        console.log('✅ Conectado ao socket na RoomsPage');
-      });
 
-      socket.on('roomAdded', () => {
-        console.log('📥 Recebido evento roomAdded');
-        fetchRooms();  // Atualiza as salas automaticamente
-      if (window.electronAPI) {
-        window.electronAPI.notify({
-          title: 'Nova conversa',
-          body: 'Você foi adicionado a uma nova sala de chat.',
-        });
-      }
-      });
-      socket.on('updateOnlineUsers', (users) => {
-        console.log('📡 Usuários online atualizados:', users);
-        setOnlineUsers(users.map((u) => u.id)); 
-      });
-      socket.on('disconnect', () => {
-        console.log('🔌 Socket desconectado da RoomsPage');
+      socket.on('roomDeleted', ({ room_id }) => {
+        console.log(`🗑️ Sala ${room_id} foi excluída`);
+        fetchRooms();
       });
 
       return () => {
-        socket.disconnect();
+        socket.off('roomAdded');
+        
+        socket.off('roomDeleted');
       };
-    }, [token]);
+    }, [socket, token, user]);
 
     const fetchRooms = async () => {
       try {
@@ -70,6 +69,18 @@
     };
 
     const abrirModal = async () => {
+      await carregarUsuariosEsetores();
+      setModoAtendimento(false);
+      setIsModalOpen(true);
+    };
+
+    const abrirModalAtendimento = async () => {
+      await carregarUsuariosEsetores();
+      setModoAtendimento(true);
+      setIsModalOpen(true);
+    };
+
+    const carregarUsuariosEsetores = async () => {
       try {
         const usersRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -79,7 +90,6 @@
         });
         setAllUsers(usersRes.data);
         setAllSectors(sectorsRes.data);
-        setIsModalOpen(true);
       } catch (err) {
         console.error('Erro ao carregar usuários ou setores:', err);
       }
@@ -117,17 +127,20 @@
       navigate(`/chat/${id}`);
     };
 
-    const excluirSala = async (roomId) => {
-      if (!window.confirm('Tem certeza que deseja excluir esta sala?')) return;
+    const finalizarSala = async (roomId) => {
+      if (!window.confirm('Deseja realmente finalizar esta sala?')) return;
+
       try {
-        await axios.delete(`${import.meta.env.VITE_API_URL}/api/rooms/${roomId}`, {
+        await axios.patch(`${import.meta.env.VITE_API_URL}/api/rooms/${roomId}/finish`, null, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         fetchRooms();
       } catch (err) {
-        console.error('Erro ao excluir sala:', err);
+        console.error('Erro ao finalizar sala:', err);
       }
     };
+
 
     const handleLogout = () => {
       logout();
@@ -141,9 +154,16 @@
       const matchName = u.full_name.toLowerCase().includes(filterText.toLowerCase());
       const matchSector = filterSector ? u.sector_id === parseInt(filterSector) : true;
       const notSelf = u.id !== user.id;
-      return matchName && matchSector && notSelf;
+      const isAtendimento = modoAtendimento ? u.sector_id === 29 : true;
+      return matchName && matchSector && notSelf && isAtendimento;
     });
-
+    const fecharModal = () => {
+      setIsModalOpen(false);
+      setSelectedUsers([]);
+      setRoomName('');
+      setFilterText('');
+      setFilterSector('');
+    };
     return (
       <>
         <Header full_name={user?.full_name} />
@@ -159,6 +179,10 @@
             {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
               <button onClick={abrirModal}>Criar nova sala</button>
             )}
+            {!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
+              <button onClick={abrirModalAtendimento}>Falar com TI</button>
+            )}
+            
           </div>
 
           <div className="room-section">
@@ -174,7 +198,7 @@
                     <button onClick={() => entrarNaSala(room.id)}>Entrar</button>
                     
                     {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
-                      <button onClick={() => excluirSala(room.id)}>Excluir</button>
+                      <button onClick={() => finalizarSala(room.id)}>Finalizar</button>
                     )}
                   </div>
                 </li>
@@ -195,7 +219,7 @@
                     <button onClick={() => entrarNaSala(room.id)}>Entrar</button>
 
                     {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
-                      <button onClick={() => excluirSala(room.id)}>Excluir</button>
+                      <button onClick={() => finalizarSala(room.id)}>Finalizar</button>
                     )}
                   </div>
                 </li>
@@ -236,41 +260,49 @@
                 onChange={(e) => setFilterText(e.target.value)}
                 placeholder="Filtrar por nome"
               />
-
-              <select
-                className="sector-select"
-                value={filterSector}
-                onChange={(e) => setFilterSector(e.target.value)}
-              >
-                <option value="">Todos os setores</option>
-                {allSectors.map((sector) => (
-                  <option key={sector.sector_id} value={sector.sector_id}>
-                    {sector.sector_name}
-                  </option>
-                ))}
-              </select>
-
+              {!modoAtendimento && (
+                <select
+                  className="sector-select"
+                  value={filterSector}
+                  onChange={(e) => setFilterSector(e.target.value)}
+                >
+                  <option value="">Todos os setores</option>
+                  {allSectors.map((sector) => (
+                    <option key={sector.sector_id} value={sector.sector_id}>
+                      {sector.sector_name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {modoAtendimento && (
+                <div style={{ marginBottom: '0.5rem', fontStyle: 'italic' }}>
+                  Mostrando apenas usuários do setor de tecnologia
+                </div>
+              )}
               <div className="user-list">
                 {[...filteredUsers]
                   .sort((a, b) => {
-                    const aOnline = onlineUsers.includes(a.id);
-                    const bOnline = onlineUsers.includes(b.id);
-                    return (bOnline ? 1 : 0) - (aOnline ? 1 : 0);
+                    const aOnline = allOnlineUsers.some((u) => u.id === a.id);
+                    const bOnline = allOnlineUsers.some((u) => u.id === b.id);
+                    return (aOnline === bOnline) ? 0 : aOnline ? -1 : 1;
                   })
                   .map((u) => {
-                    const isOnline = onlineUsers.includes(u.id);
+                    const isOnline = allOnlineUsers.some((ou) => ou.id === u.id);
                     return (
                       <div
                         key={u.id}
-                        className={`user-list-item ${
-                          selectedUsers.find((su) => su.id === u.id) ? 'selected' : ''
-                        } ${isOnline ? 'online' : ''}`}
+                        className={`user-list-item ${selectedUsers.find((su) => su.id === u.id) ? 'selected' : ''} ${isOnline ? 'online' : ''}`}
                         onClick={() => {
-                          setSelectedUsers((prev) =>
-                            prev.some((su) => su.id === u.id)
-                              ? prev.filter((su) => su.id !== u.id)
-                              : [...prev, u]
-                          );
+                          setSelectedUsers((prev) => {
+                            const alreadySelected = prev.some((su) => su.id === u.id);
+                            if (!isGroup) {
+                              return alreadySelected ? [] : [u];
+                          }
+                          return alreadySelected
+                            ? prev.filter((su) => su.id !== u.id)
+                            : [...prev, u];
+                          });
+
                         }}
                       >
                         {u.full_name} ({u.sector_name}) {isOnline ? '🟢' : ''}
@@ -281,10 +313,17 @@
               </div>
 
               <div className="modal-buttons">
-                <button onClick={criarSala} disabled={!roomName.trim()}>
+                <button 
+                onClick={criarSala}
+                disabled={
+                  !roomName.trim() ||
+                  selectedUsers.length === 0 ||
+                  (!isGroup && selectedUsers.length !== 1) ||
+                  (isGroup && selectedUsers.length < 1) 
+                  }>
                   Criar Sala
                 </button>
-                <button onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                <button onClick={fecharModal}>Cancelar</button>
               </div>
             </div>
           </div>

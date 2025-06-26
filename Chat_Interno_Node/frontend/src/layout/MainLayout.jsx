@@ -5,12 +5,13 @@ import { useAuth } from '../context/AuthContext';
 export default function MainLayout() {
   const { user } = useAuth();
 
+  if (!user) {
+    return <div>Carregando usuário...</div>;
+  }
+
   return (
     <>
-      <Header 
-        fullName={user?.full_name} 
-        sector={user?.sector?.sector_name || user?.sector_name} 
-      />
+      <Header user={user} />
       <div style={{ padding: '20px', height: 'calc(100vh - 60px)', overflow: 'auto' }}>
         <Outlet />
       </div>
