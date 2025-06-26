@@ -1,25 +1,9 @@
 const { app, BrowserWindow, ipcMain, Notification, Tray, Menu } = require('electron');
 const path = require('path');
-const AutoLaunch = require('electron-auto-launch');
 
 const isDev = !app.isPackaged;
 let win;
 let tray = null;
-
-// Configurar Auto Launch
-const autoLauncher = new AutoLaunch({
-  name: 'ChatInterno', // Nome que vai aparecer no Gerenciador de Inicialização
-});
-
-autoLauncher.isEnabled().then((isEnabled) => {
-  if (!isEnabled) {
-    autoLauncher.enable().catch((err) => {
-      console.error('Erro ao ativar auto-launch:', err);
-    });
-  }
-}).catch((err) => {
-  console.error('Erro ao verificar auto-launch:', err);
-});
 
 function createWindow() {
   win = new BrowserWindow({
@@ -51,7 +35,11 @@ function createWindow() {
 }
 
 function createTray() {
-  if (tray) return;
+  // Garante que não haja múltiplos ícones
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
 
   tray = new Tray(path.join(__dirname, 'tray-icon.png'));
 
@@ -66,6 +54,7 @@ function createTray() {
       label: 'Sair',
       click: () => {
         app.isQuiting = true;
+        tray.destroy();
         app.quit();
       },
     },
@@ -81,6 +70,12 @@ function createTray() {
 
 app.whenReady().then(() => {
   createWindow();
+
+  // Login automático ao iniciar o sistema
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: process.execPath,
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
