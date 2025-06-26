@@ -8,7 +8,7 @@ let tray = null;
 
 // Configurar Auto Launch
 const autoLauncher = new AutoLaunch({
-  name: 'MeuAppInterno', // Nome que vai aparecer no Gerenciador de Inicialização
+  name: 'ChatInterno', // Nome que vai aparecer no Gerenciador de Inicialização
 });
 
 autoLauncher.isEnabled().then((isEnabled) => {

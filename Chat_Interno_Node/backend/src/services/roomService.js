@@ -45,9 +45,19 @@ exports.getUserRooms = async (userId) => {
         `
         SELECT 
             r.*, 
-            (SELECT COUNT(*) FROM user_rooms ur2 WHERE ur2.room_id = r.id) AS member_count
+            (SELECT COUNT(*) FROM user_rooms ur2 WHERE ur2.room_id = r.id) AS member_count,
+            m.content AS last_message,
+            m.created_at AS last_message_time,
+            m.sender_id AS last_sender_id
         FROM rooms r
         JOIN user_rooms ur ON ur.room_id = r.id
+        LEFT JOIN LATERAL (
+            SELECT content, created_at, sender_id
+            FROM messages 
+            WHERE room_id = r.id 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        ) m ON true
         WHERE ur.user_id = $1
           AND r.is_finished = false
         `,
@@ -56,3 +66,4 @@ exports.getUserRooms = async (userId) => {
 
     return result.rows;
 };
+
