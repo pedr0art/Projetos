@@ -1,8 +1,8 @@
 {
-  "name": "frontend",
+  "name": "hermeshub",
   "private": true,
   "version": "0.0.0",
-  "description": "Aplicação de chat interno com Electron e React",
+  "description": "HermesHub - Aplicação voltada para comunicação interna em empresas",
   "author": "",
   "type": "module",
   "main": "electron/main.cjs",
@@ -20,6 +20,7 @@
     "electron-auto-launch": "^5.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.5.1",
     "socket.io-client": "^4.8.1"
   },
@@ -40,10 +41,10 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.seuapp.chatapp",
-    "productName": "ChatInterno",
+    "appId": "com.hermeshub.app",
+    "productName": "HermesHub",
     "directories": {
-      "buildResources": "assets",
+      "buildResources": "electron/assets",
       "output": "release"
     },
     "files": [
@@ -52,7 +53,8 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico"
+      "icon": "electron/assets/icon.ico",
+      "artifactName": "${productName} Setup.${ext}"
     }
   }
 }

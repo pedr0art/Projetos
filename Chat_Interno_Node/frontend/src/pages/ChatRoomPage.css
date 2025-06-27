@@ -2,11 +2,11 @@
 .chat-page-container {
     display: flex;
     flex-direction: column;
-    height: calc(85vh - 60px);
+    height: calc(91vh - 60px);
     margin-top: 60px;
     width: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
+    background-color: #dfeae2;
 }
 
 .chat-container {
@@ -17,12 +17,12 @@
     margin: 0;
     border-radius: 0;
     box-shadow: none;
-    background-color: #f9f9f9;
+    background-color: #dfeae2;
     flex: 1;
 }
 
 .chat-room-header {
-    background-color: #35523B;
+    background-color: #207567;
     color: white;
     padding: 10px 15px;
     font-size: 1rem;
@@ -49,6 +49,9 @@
     cursor: pointer;
     font-size: 0.9rem;
     transition: background-color 0.3s;
+    align-items: center;
+    justify-content: center;
+    display: flex;
 }
 
 .back-button:hover {
@@ -56,7 +59,7 @@
 }
 
 .add-user-button {
-    background-color: #5cb85c;
+    background-color: #0f3831;
     color: white;
     border: none;
     border-radius: 4px;
@@ -64,10 +67,13 @@
     cursor: pointer;
     font-size: 0.9rem;
     transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .add-user-button:hover {
-    background-color: #4cae4c;
+    background-color: #195a4f;
 }
 
 .chat-messages-container {
@@ -75,7 +81,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    background-color: #8CA792;
+    background-color: #6baf91b4;
     position: relative;
     min-height: 0;
 }
@@ -98,61 +104,95 @@
 
 .message-sent {
     align-self: flex-end;
-    background-color: #35523B;
-    color: white;
+    background-color: #4e9c81;
+    color: #222;
     border-bottom-right-radius: 4px;
 }
 
 .message-received {
     align-self: flex-start;
-    background-color: #428940;
-    color: white;
+    background-color: #04a17a;
+    color: #222;
     border-bottom-left-radius: 4px;
 }
 
 .message-sender {
+    
     font-weight: bold;
     margin-bottom: 2px;
-    font-size: 0.8rem;
+    font-size: 1rem;
 }
 
 .message-content {
-    font-size: 0.9rem;
+  font-size: 1rem;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .message-time {
     font-size: 0.65rem;
-    opacity: 0.7;
+    opacity: 0.9;
     text-align: right;
     margin-top: 2px;
 }
 
 .chat-input-area {
-    display: flex;
-    padding: 10px 15px;
-    background-color: white;
-    border-top: 1px solid #ddd;
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 15px;
+  background-color: #dfeae2;
+  border-top: 1px solid #ddd;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  gap: 10px;
 }
 
 .chat-input {
-    flex: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 24px;
-    outline: none;
-    font-size: 0.9rem;
-    transition: border 0.3s;
+  flex: 1;
+  max-height: 150px;
+  min-height: 40px;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  outline: none;
+  font-size: 1rem;
+  resize: none;
+  overflow-y: hidden;
+  line-height: 1.4;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+}
+.send-button-container {
+  display: flex;
+  align-items: flex-end;
 }
 
+.send-button {
+  background-color: #207567;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  height: 40px;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.send-button:hover {
+  background-color: #1a5e52;
+}
 .chat-input:focus {
     border-color: #34533B;
 }
 
 .send-button {
-    background-color: #28402D;
+    background-color: #207567;
     color: white;
     border: none;
     border-radius: 24px;
@@ -165,7 +205,7 @@
 }
 
 .send-button:hover {
-    background-color: #263C2B;
+    background-color: #1a5e52;
 }
 
 .feedback-message {
@@ -192,7 +232,7 @@
 }
 
 .modal-content {
-    background: white;
+    background: #dfeae2;
     padding: 20px;
     border-radius: 8px;
     width: 400px;
@@ -267,12 +307,12 @@
 }
 
 .modal-buttons button:first-child {
-    background-color: #5cb85c;
+    background-color: #207567;
     color: white;
 }
 
 .modal-buttons button:first-child:hover {
-    background-color: #4cae4c;
+    background-color: #195a4f;
 }
 
 .modal-buttons button:last-child {
@@ -285,7 +325,7 @@
 }
 .user-list-item.online {
   font-weight: bold;
-  color: green;
+  color: #207567;
 }
 
 .user-list-item.offline {
@@ -295,8 +335,4 @@
 .status-indicator {
   margin-left: 8px;
   font-size: 0.8em;
-}
-.user-list-item.online {
-  font-weight: bold;
-  color: green;
 }

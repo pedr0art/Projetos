@@ -34,6 +34,7 @@ export function SocketProvider({ children }) {
         window.electronAPI.notify({
           title: `Nova mensagem de ${msg.sender} (${msg.sector_name || ''})`,
           body: `${msg.message || msg.content} `,
+          route: `/chat/${msg.roomId}`
         });
       }
 

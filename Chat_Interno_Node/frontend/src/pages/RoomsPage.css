@@ -1,8 +1,8 @@
 .rooms-container {
-  max-width: 700px;
+  max-width: 1700px;
   margin: 100px auto 40px auto;
   padding: 20px;
-  background-color: #fdfdfd;
+  background-color: #b4d6c1;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -20,7 +20,7 @@
 
 .rooms-header button {
   padding: 6px 12px;
-  background-color: #c62828;
+  background-color: #B72A30;
   color: white;
   border: none;
   border-radius: 5px;
@@ -43,7 +43,7 @@
 
 .room-form button {
   padding: 8px 14px;
-  background-color: #4caf50;
+  background-color: #207567;
   color: white;
   border: none;
   border-radius: 5px;
@@ -59,16 +59,61 @@
   list-style: none;
   padding-left: 0;
 }
+.room-section ul li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 90px; /* ajuste conforme visual */
+  padding: 0.5rem;
+  border-bottom: 1px solid #ccc;
+}
 
+.create-new-room {
+    background-color: #0f3831;
+    color: white;
+    border: none;
+    border-radius: 4px;
+
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+}
+.entrar-sala,
+.finalizar-sala {
+  background-color: #0f3831;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centraliza o conteúdo interno */
+  width: 160px;
+  height: 40px;
+}
 .room-section li {
-  background: #f5f5f5;
-  padding: 10px;
+  background: #9cc7b1;
+  padding: 15px;
   border-radius: 6px;
   margin-bottom: 10px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
+  min-height: 100px;
+  flex-direction: row;
 }
+
+.room-section li > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
 
 .room-section button {
   margin-left: 10px;
@@ -80,17 +125,17 @@
 }
 
 .room-section button:nth-of-type(1) {
-  background-color: #428940;
+  background-color: #207567;
   color: white;
 }
 
 .room-section button:nth-of-type(2) {
-  background-color: #f44336;
+  background-color: #B72A30;
   color: white;
 }
 .user-list-item.online {
   font-weight: bold;
-  color: green;
+  color: #207567;
 }
 
 .user-list-item.offline {
@@ -103,7 +148,7 @@
 }
 .user-list-item.online {
   font-weight: bold;
-  color: green;
+  color: #207567;
 }
 button:disabled {
   background-color: #ccc;
@@ -111,3 +156,15 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }
+
+.room-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.single-button {
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* faz o botão descer mais */
+}
+

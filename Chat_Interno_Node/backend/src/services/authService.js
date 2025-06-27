@@ -30,7 +30,7 @@ exports.login = async (username, password) => {
   const token = jwt.sign(
     { id: user.id, username: user.username, sector_id: user.sector_id },
     jwtSecret,
-    { expiresIn: '1h' }
+    { expiresIn: '7d' }
   );
 
   return {

@@ -7,8 +7,10 @@ let tray = null;
 
 function createWindow() {
   win = new BrowserWindow({
+    title: "HermesHub",
     width: 1280,
     height: 800,
+    icon: path.join(__dirname, 'assets', 'icon.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -60,7 +62,7 @@ function createTray() {
     },
   ]);
 
-  tray.setToolTip('Meu App Interno');
+  tray.setToolTip('HermesHub');
   tray.setContextMenu(contextMenu);
 
   tray.on('click', () => {
@@ -71,11 +73,13 @@ function createTray() {
 app.whenReady().then(() => {
   createWindow();
 
-  // Login automático ao iniciar o sistema
   app.setLoginItemSettings({
     openAtLogin: true,
     path: process.execPath,
   });
+
+  app.setName('HermesHub'); 
+  app.setAppUserModelId('com.hermeshub.app');
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -88,7 +92,26 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Notificações
-ipcMain.on('show-notification', (_, { title, body }) => {
-  new Notification({ title, body }).show();
+ipcMain.on('show-notification', (_, { title, body, route }) => {
+  const notification = new Notification({
+    title,
+    body,
+    icon: path.join(__dirname, 'assets', 'icon_.png')
+  });
+
+  notification.on('click', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.setAlwaysOnTop(true);     // força o foco
+      win.focus();
+      win.setAlwaysOnTop(false);  
+
+      // Envia a rota clicada para o renderer 
+      win.webContents.send('notification-click', route || '/rooms');
+    }
+  });
+
+  notification.show();
 });
+

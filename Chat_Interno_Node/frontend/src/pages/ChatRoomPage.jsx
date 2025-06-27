@@ -5,6 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { useSocket } from '../context/SocketContext';
 import './ChatRoomPage.css';
+import { IoArrowBackCircleSharp } from "react-icons/io5";
+import { IoPersonAddOutline } from "react-icons/io5";
+import { BiSend } from "react-icons/bi";
 
 export default function ChatRoomPage() {
   const { id } = useParams();
@@ -76,13 +79,23 @@ export default function ChatRoomPage() {
       }
     };
 
+    const handleRoomFinished = (data) => {
+      if (parseInt(data.roomId) === parseInt(id)) {
+        alert('Esta sala foi finalizada. Você será redirecionado.');
+        navigate('/rooms');
+      }
+    };
+
     addMessageListener(handleMessage);
+    socket.on('roomFinished', handleRoomFinished);
 
     return () => {
       removeMessageListener(handleMessage);
+      socket.off('roomFinished', handleRoomFinished);
       setCurrentRoomId(null);
     };
   }, [id, socket, user?.id]);
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -155,19 +168,41 @@ export default function ChatRoomPage() {
     const notInRoom = !userIdsNaSala.includes(u.id);
     return matchName && matchSector && notSelf && notInRoom;
   });
+  const textareaRef = useRef(null);
 
+  const handleInputChange = (e) => {
+    setNewMsg(e.target.value);
+    autoResizeTextarea();
+  };
+
+  const autoResizeTextarea = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const maxHeight = 150;
+      const scrollHeight = textarea.scrollHeight;
+
+      if (scrollHeight > maxHeight) {
+        textarea.style.overflowY = 'auto';
+        textarea.style.height = maxHeight + 'px';
+      } else {
+        textarea.style.overflowY = 'hidden';
+        textarea.style.height = scrollHeight + 'px';
+      }
+    }
+  };
   return (
     <div className="chat-page-container">
       <div className="chat-container">
         <div className="chat-room-header">
           <button className="back-button" onClick={() => navigate('/rooms')}>
-            ← Voltar
+            <IoArrowBackCircleSharp size={28} />
           </button>
           <h2>{roomName || 'Carregando...'}</h2>
 
           {roomInfo?.is_group && (user.sector_id === 29 || user.sector_id === 6) && (
             <button className="add-user-button" onClick={() => setIsModalOpen(true)}>
-              Adicionar usuário
+              Adicionar usuário <IoPersonAddOutline size={25} style={{ marginLeft: '6px' }} />
             </button>
           )}
         </div>
@@ -200,17 +235,26 @@ export default function ChatRoomPage() {
         </div>
 
         <div className="chat-input-area">
-          <input
+          <textarea
+            ref={textareaRef}
             className="chat-input"
             placeholder="Digite sua mensagem..."
             value={newMsg}
-            onChange={(e) => setNewMsg(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            rows={1}
           />
+        <div className="send-button-container">
           <button className="send-button" onClick={sendMessage}>
-            Enviar
+            <BiSend size={30} />
           </button>
         </div>
+      </div>
       </div>
 
       {isModalOpen && (

@@ -39,13 +39,12 @@ exports.getUserRooms = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
 exports.finishRoom = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
 
   try {
-    // Verifica se o usuário participa da sala
+    // Verifica se o usuário participa da sala e busca usuários da sala
     const usersInRoomRes = await pool.query(
       'SELECT user_id FROM user_rooms WHERE room_id = $1',
       [id]
@@ -53,15 +52,26 @@ exports.finishRoom = async (req, res) => {
     const userIds = usersInRoomRes.rows.map((row) => row.user_id);
 
     // Atualiza o campo is_finished na sala
-    await pool.query(
+    const updateRes = await pool.query(
       `UPDATE rooms
        SET is_finished = true
        WHERE id = $1
-         AND id IN (SELECT room_id FROM user_rooms WHERE user_id = $2)`,
+         AND id IN (SELECT room_id FROM user_rooms WHERE user_id = $2)
+       RETURNING *`,
       [id, userId]
     );
 
+    if (updateRes.rowCount === 0) {
+      return res.status(403).json({ error: 'Você não pode finalizar esta sala' });
+    }
+
     const io = getIO();
+
+    // Emite evento para todos usuários da sala (usando a sala do socket)
+// Emite para usuários na sala (ChatRoomPage)
+    io.to(String(id)).emit('roomFinished', { roomId: parseInt(id) });
+
+    // Emite para usuários que atualizam a lista (RoomsPage)
     userIds.forEach((uid) => {
       io.to(`user_${uid}`).emit('roomDeleted', { room_id: parseInt(id) });
     });
@@ -72,8 +82,6 @@ exports.finishRoom = async (req, res) => {
     res.status(500).json({ error: 'Erro ao finalizar sala' });
   }
 };
-
-
 
 exports.addUserToRoom = async (req, res) => {
     const roomId = req.params.id;

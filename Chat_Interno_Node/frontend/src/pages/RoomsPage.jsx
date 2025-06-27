@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import './RoomsPage.css';
 import { useSocket } from '../context/SocketContext';
 import dayjs from 'dayjs';
+import { IoMdAddCircleOutline } from "react-icons/io";
+import { IoChatbubblesOutline } from "react-icons/io5";
+import { RiChatNewLine } from "react-icons/ri";
+import { PiChatCircleSlash } from "react-icons/pi";
 
 export default function RoomsPage() {
   const { token, user, logout } = useAuth();
@@ -81,6 +85,7 @@ export default function RoomsPage() {
         window.electronAPI.notify({
           title: 'Nova conversa',
           body: 'Você foi adicionado a uma nova sala de chat.',
+          route: '/rooms'
         });
       }
     };
@@ -227,7 +232,7 @@ export default function RoomsPage() {
       <div className="rooms-container">
         <div className="rooms-header">
           <h2>Minhas Salas</h2>
-          <button onClick={handleLogout}>Sair</button>
+          
         </div>
 
         <div className="room-form">
@@ -235,14 +240,14 @@ export default function RoomsPage() {
             user?.sector_id === 6 ||
             user?.sector?.sector_id === 29 ||
             user?.sector?.sector_id === 6) && (
-            <button onClick={abrirModal}>Criar nova sala</button>
+            <button className="create-new-room" onClick={abrirModal}>Criar nova sala <IoMdAddCircleOutline size={28} style={{ marginLeft: '6px' }} /></button>
           )}
           {!(
             user?.sector_id === 29 ||
             user?.sector_id === 6 ||
             user?.sector?.sector_id === 29 ||
             user?.sector?.sector_id === 6
-          ) && <button onClick={abrirModalAtendimento}>Falar com TI</button>}
+          ) && <button className="create-new-room" onClick={abrirModalAtendimento}>Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} /></button>}
         </div>
 
         <div className="room-section">
@@ -253,19 +258,18 @@ export default function RoomsPage() {
               <li key={room.id}>
                 <div>
                   <strong>{room.name}</strong> • {room.member_count} participante(s)
-                  <div style={{ fontStyle: 'italic', color: '#666', marginTop: '0.3rem' }}>
+                  <div style={{ color: '#333', marginTop: '15px' }}>
                     {room.last_message ? (
                       <>
                         {room.last_sender_id === user.id
                           ? 'Você'
                           : allUsers.find((u) => u.id === room.last_sender_id)?.full_name || 'Alguém'}
                         : {room.last_message}
+
                         {room.last_message_time && (
-                          <span
-                            style={{ marginLeft: '0.5rem', fontSize: '0.8rem', color: '#999' }}
-                          >
-                            ({dayjs(room.last_message_time).format('HH:mm - DD/MM')})
-                          </span>
+                          <div style={{ fontSize: '0.75rem', color: '#444', marginTop: '4px' }}>
+                            {dayjs(room.last_message_time).format('HH:mm')} hs - {dayjs(room.last_message_time).format('DD/MM/YYYY')}
+                          </div>
                         )}
                       </>
                     ) : (
@@ -273,14 +277,14 @@ export default function RoomsPage() {
                     )}
                   </div>
                 </div>
-                <div>
-                  <button onClick={() => entrarNaSala(room.id)}>Entrar</button>
+                <div className={`room-buttons ${!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) ? 'single-button' : ''}`}>
+                  <button className="entrar-sala"onClick={() => entrarNaSala(room.id)}>Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} /></button>
 
                   {(user?.sector_id === 29 ||
                     user?.sector_id === 6 ||
                     user?.sector?.sector_id === 29 ||
                     user?.sector?.sector_id === 6) && (
-                    <button onClick={() => finalizarSala(room.id)}>Finalizar</button>
+                    <button className="finalizar-sala"onClick={() => finalizarSala(room.id)}>Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} /></button>
                   )}
                 </div>
               </li>
@@ -296,34 +300,33 @@ export default function RoomsPage() {
               <li key={room.id}>
                 <div>
                   <strong>{room.name}</strong> • {room.member_count} participante(s)
-                  <div style={{ fontStyle: 'italic', color: '#666', marginTop: '0.3rem' }}>
+                  <div style={{ color: '#333', marginTop: '15px' }}>
                     {room.last_message ? (
                       <>
                         {room.last_sender_id === user.id
                           ? 'Você'
                           : allUsers.find((u) => u.id === room.last_sender_id)?.full_name || 'Alguém'}
                         : {room.last_message}
+
                         {room.last_message_time && (
-                          <span
-                            style={{ marginLeft: '0.5rem', fontSize: '0.8rem', color: '#999' }}
-                          >
-                            ({dayjs(room.last_message_time).format('HH:mm - DD/MM')})
-                          </span>
-                        )}
+                          <div style={{ fontSize: '0.75rem', color: '#444', marginTop: '4px' }}>
+                            {dayjs(room.last_message_time).format('HH:mm')} hs - {dayjs(room.last_message_time).format('DD/MM/YYYY')}
+                          </div>
+                        )}  
                       </>
                     ) : (
                       'Nenhuma mensagem ainda'
                     )}
                   </div>
                 </div>
-                <div>
-                  <button onClick={() => entrarNaSala(room.id)}>Entrar</button>
+                <div className={`room-buttons ${!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) ? 'single-button' : ''}`}>
+                  <button className="entrar-sala" onClick={() => entrarNaSala(room.id)}>Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} /></button>
 
                   {(user?.sector_id === 29 ||
                     user?.sector_id === 6 ||
                     user?.sector?.sector_id === 29 ||
                     user?.sector?.sector_id === 6) && (
-                    <button onClick={() => finalizarSala(room.id)}>Finalizar</button>
+                    <button className="finalizar-sala"onClick={() => finalizarSala(room.id)}>Finalizar <PiChatCircleSlash size={26} style={{ marginLeft: '6px' }}/></button>
                   )}
                 </div>
               </li>
@@ -332,11 +335,6 @@ export default function RoomsPage() {
         </div>
       </div>
 
-      {(user?.sector_id === 29 || user?.sector?.sector_id === 29) && (
-        <p style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <Link to="/register">Cadastrar novo usuário</Link>
-        </p>
-      )}
 
       {isModalOpen && (
         <div className="modal-overlay">
