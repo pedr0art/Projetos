@@ -4,14 +4,16 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 import Header from '../components/Header';
+import { MdPerson, MdLock } from 'react-icons/md';
+import logo from '../assets/icon.svg'; // use sua logo aqui
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Se já estiver logado, redireciona direto para Rooms
   useEffect(() => {
     if (user) navigate('/rooms');
   }, [user, navigate]);
@@ -22,12 +24,16 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, form);
-      login(res.data); // Salva token e user
+      login(res.data);
       navigate('/rooms');
     } catch (err) {
       setError('Usuário ou senha inválidos');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,12 +41,36 @@ export default function LoginPage() {
     <>
       <Header />
       <div className="login-container" style={{ paddingTop: '80px' }}>
+        <img src={logo} alt="Logo HermesHub" className="login-logo" />
+
+
         <h2>Login</h2>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p className="error-message">{error}</p>}
         <form onSubmit={handleSubmit}>
-          <input name="username" placeholder="Usuário" onChange={handleChange} required />
-          <input name="password" type="password" placeholder="Senha" onChange={handleChange} required />
-          <button type="submit">Entrar</button>
+          <div className="input-group">
+            <MdPerson className="input-icon" />
+            <input
+              name="username"
+              placeholder="Usuário"
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="input-group">
+            <MdLock className="input-icon" />
+            <input
+              name="password"
+              type="password"
+              placeholder="Senha"
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Fazendo login...' : 'Entrar'}
+          </button>
         </form>
       </div>
     </>

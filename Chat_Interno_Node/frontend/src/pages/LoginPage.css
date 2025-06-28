@@ -8,20 +8,70 @@
   background-color: #b4d6c1;
 }
 
+.login-logo {
+  height: 150px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+
+.login-container h2 {
+  margin-bottom: 16px;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.input-group {
+  position: relative;
+  margin: 10px 0;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 1.3rem;
+  pointer-events: none;
+}
+
 .login-container input {
   width: 100%;
-  padding: 12px;
-  margin: 10px 0;
+  padding: 12px 12px 12px 38px; /* espaço para o ícone */
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   box-sizing: border-box;
 }
 
-.login-container h2 {
-  margin-bottom: 24px;
+.login-container input:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
 }
 
-.login-container p {
-  margin-top: 12px;
+.login-container button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1rem;
+  background-color: #358873;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-container button:hover:not(:disabled) {
+  background-color: #2c6e62;
+}
+
+.login-container button:disabled {
+  background-color: #6ca88a;
+  cursor: wait;
 }

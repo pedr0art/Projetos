@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './RegisterPage.css';
 import Header from '../components/Header';
+import { FaUser, FaLock, FaIdBadge, FaBuilding } from 'react-icons/fa';
+import logo from '../assets/icon.svg'; // use sua logo aqui
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -69,9 +71,12 @@ export default function RegisterPage() {
     <>
       <Header />
       <div className="register-container" style={{ paddingTop: '80px' }}>
+        <img src={logo} alt="Logo HermesHub" className="login-logo" />
         <h2>Registrar Novo Usuário</h2>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <form onSubmit={handleSubmit}>
+        <div className="input-icon-wrapper">
+          <FaIdBadge className="input-icon" />
           <input
             name="full_name"
             placeholder="Nome Completo"
@@ -79,42 +84,58 @@ export default function RegisterPage() {
             onChange={handleChange}
             required
           />
-          <input
-            name="username"
-            placeholder="Usuário"
-            value={form.username}
-            onChange={handleChange}
-            required
-          />
-          <input
-            name="password"
-            type="password"
-            placeholder="Senha"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-          <input
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirmar senha"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-          <select
-            name="sector_id"
-            value={form.sector_id}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Selecione um setor</option>
-            {sectors.map((sector) => (
-              <option key={sector.sector_id} value={sector.sector_id}>
-                {sector.sector_name}
-              </option>
-            ))}
-          </select>
+        </div>
+          <div className="input-icon-wrapper">
+        <FaUser className="input-icon" />
+        <input
+          name="username"
+          placeholder="Usuário"
+          value={form.username}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="input-icon-wrapper">
+        <FaLock className="input-icon" />
+        <input
+          name="password"
+          type="password"
+          placeholder="Senha"
+          value={form.password}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="input-icon-wrapper">
+        <FaLock className="input-icon" />
+        <input
+          name="confirmPassword"
+          type="password"
+          placeholder="Confirmar senha"
+          value={form.confirmPassword}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="input-icon-wrapper">
+        <FaBuilding className="input-icon" />
+        <select
+          name="sector_id"
+          value={form.sector_id}
+          onChange={handleChange}
+          required
+        >
+          <option value="">Selecione um setor</option>
+          {sectors.map((sector) => (
+            <option key={sector.sector_id} value={sector.sector_id}>
+              {sector.sector_name}
+            </option>
+          ))}
+        </select>
+      </div>
           <button type="submit">Criar conta</button>
           <button
             type="button"

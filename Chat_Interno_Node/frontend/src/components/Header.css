@@ -12,15 +12,35 @@
     left: 0;
     z-index: 1000;
   }
-
-  .left-side {
+  @font-face {
+    font-family: 'Romanica';
+    src: url('../assets/fonts/Romanica.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+.center-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Romanica', sans-serif;
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: white;
+  user-select: none;
+  pointer-events: none; /* para não interferir no clique */
+  cursor: default; 
+}
+    .left-side {
     display: flex;
     align-items: center;
     gap: 12px;
   }
 
   .logo {
-    height: 35px;
+    height: 40px;
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
   .right-side {
@@ -111,8 +131,10 @@
 }
 
 .profile-footer img.empresa-logo {
-  width: 80px;
+  width: 100px;
   margin: 8px 0;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .footer-contact a {

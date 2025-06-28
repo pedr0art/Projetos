@@ -1,3 +1,4 @@
+import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';

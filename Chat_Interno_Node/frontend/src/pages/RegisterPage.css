@@ -5,7 +5,7 @@
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  background-color: #f7f7f7;
+  background-color: #b4d6c1;
 }
 
 .register-container input,
@@ -38,4 +38,27 @@ button.cancel-button {
 button.cancel-button:hover {
   background-color: #555; /* cor diferente no hover, mais escura que cinza */
   border-color: #444;
+}
+.input-icon-wrapper {
+  position: relative;
+}
+
+.input-icon-wrapper input,
+.input-icon-wrapper select {
+  padding-left: 40px; /* espaço para o ícone */
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #555;
+  pointer-events: none;
+  font-size: 18px;
+}
+.login-logo {
+  height: 80px;
+  user-select: none;
+  -webkit-user-drag: none;
 }

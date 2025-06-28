@@ -36,7 +36,9 @@ export default function Header() {
       <div className="left-side">
         <img src={logo} alt="Logo" className="logo" />
       </div>
-
+      <div className="center-title">
+        HermesHub
+      </div>
       {user && (
         <div className="right-side">
           <FaUserCircle className="profile-icon" size={32} onClick={toggleProfile} />
