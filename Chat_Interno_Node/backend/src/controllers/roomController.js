@@ -30,14 +30,15 @@ exports.createRoom = async (req, res) => {
 
 
 exports.getUserRooms = async (req, res) => {
-    const userId = req.user.id;
+  const userId = req.user.id;
+  const includeFinished = req.query.includeFinished === 'true';
 
-    try {
-        const rooms = await roomService.getUserRooms(userId);
-        res.json(rooms);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const rooms = await roomService.getUserRooms(userId, includeFinished);
+    res.json(rooms);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 exports.finishRoom = async (req, res) => {
   const { id } = req.params;

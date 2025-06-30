@@ -10,6 +10,7 @@ import { IoMdAddCircleOutline } from "react-icons/io";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { RiChatNewLine } from "react-icons/ri";
 import { PiChatCircleSlash } from "react-icons/pi";
+import { MdHideSource } from "react-icons/md";
 
 export default function RoomsPage() {
   const { token, user, logout } = useAuth();
@@ -23,6 +24,8 @@ export default function RoomsPage() {
   const [filterSector, setFilterSector] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [modoAtendimento, setModoAtendimento] = useState(false);
+  const [roomStatusFilter, setRoomStatusFilter] = useState('abertas'); // 'abertas' | 'finalizadas' | 'todas'
+
 
   const { socket, allOnlineUsers, addMessageListener, removeMessageListener } = useSocket();
   const navigate = useNavigate();
@@ -31,7 +34,7 @@ export default function RoomsPage() {
   const fetchRooms = async () => {
     if (!token) return;
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/rooms`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/rooms?includeFinished=true`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRooms(res.data);
@@ -129,6 +132,20 @@ export default function RoomsPage() {
       removeMessageListener(handleNewMessage);
     };
   }, [socket, token, addMessageListener, removeMessageListener]);
+  useEffect(() => {
+    const savedFilter = localStorage.getItem('roomStatusFilter');
+    if (savedFilter) {
+      setRoomStatusFilter(savedFilter);
+    } else {
+      fetchRooms();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    localStorage.setItem('roomStatusFilter', roomStatusFilter);
+    fetchRooms();
+  }, [roomStatusFilter, token]);
 
   // Funções de abrir modal
   const carregarUsuariosEsetores = async () => {
@@ -212,8 +229,6 @@ export default function RoomsPage() {
   });
 
   // Filtrar salas por grupo ou privada
-  const salasPrivadas = rooms.filter((room) => !room.is_group);
-  const salasGrupo = rooms.filter((room) => room.is_group);
 
   // Fechar modal
   const fecharModal = () => {
@@ -223,6 +238,14 @@ export default function RoomsPage() {
     setFilterText('');
     setFilterSector('');
   };
+  const salasFiltradas = rooms.filter((room) => {
+    const isFinished = room.is_finished === true || room.is_finished === 'true';
+    if (roomStatusFilter === 'abertas') return !room.is_finished;
+    if (roomStatusFilter === 'finalizadas') return room.is_finished;
+    return true; // 'todas'
+  });
+  const salasPrivadas = salasFiltradas.filter((room) => !room.is_group);
+  const salasGrupo = salasFiltradas.filter((room) => room.is_group);
 
   // Renderização
   return (
@@ -234,6 +257,28 @@ export default function RoomsPage() {
           <h2>Minhas Salas</h2>
           
         </div>
+        {(user?.sector_id === 29 || user?.sector?.sector_id === 29) && (
+          <div className="status-filter">
+            <button
+              className={roomStatusFilter === 'abertas' ? 'active' : ''}
+              onClick={() => setRoomStatusFilter('abertas')}
+            >
+              Em Aberto
+            </button>
+            <button
+              className={`finalizadas-button ${roomStatusFilter === 'finalizadas' ? 'active' : ''}`}
+              onClick={() => setRoomStatusFilter('finalizadas')}
+            >
+              Finalizadas
+            </button>
+            <button
+              className={roomStatusFilter === 'todas' ? 'active' : ''}
+              onClick={() => setRoomStatusFilter('todas')}
+            >
+              Todas
+            </button>
+          </div>
+        )}
 
         <div className="room-form">
           {(user?.sector_id === 29 ||
@@ -251,13 +296,14 @@ export default function RoomsPage() {
         </div>
 
         <div className="room-section">
+
           <h3>Salas Privadas</h3>
           {salasPrivadas.length === 0 && <p>Nenhuma sala privada.</p>}
           <ul>
             {salasPrivadas.map((room) => (
               <li key={room.id}>
                 <div>
-                  <strong>{room.name}</strong> • {room.member_count} participante(s)
+                  <strong>{room.name} {room.is_finished && <MdHideSource size={16} title="Sala finalizada" style={{ marginLeft: '4px', color: '#B72A30', justifycontent: 'center', alignitems: 'center' }} />}</strong> • {room.member_count} participante(s)
                   <div style={{ color: '#333', marginTop: '15px' }}>
                     {room.last_message ? (
                       <>
@@ -280,11 +326,10 @@ export default function RoomsPage() {
                 <div className={`room-buttons ${!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) ? 'single-button' : ''}`}>
                   <button className="entrar-sala"onClick={() => entrarNaSala(room.id)}>Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} /></button>
 
-                  {(user?.sector_id === 29 ||
-                    user?.sector_id === 6 ||
-                    user?.sector?.sector_id === 29 ||
-                    user?.sector?.sector_id === 6) && (
-                    <button className="finalizar-sala"onClick={() => finalizarSala(room.id)}>Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} /></button>
+                  {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && !room.is_finished && (
+                    <button className="finalizar-sala" onClick={() => finalizarSala(room.id)}>
+                      Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} />
+                    </button>
                   )}
                 </div>
               </li>
@@ -299,7 +344,7 @@ export default function RoomsPage() {
             {salasGrupo.map((room) => (
               <li key={room.id}>
                 <div>
-                  <strong>{room.name}</strong> • {room.member_count} participante(s)
+                  <strong>{room.name} {room.is_finished && <MdHideSource  size={16} title="Sala finalizada" style={{ marginLeft: '4px', color: '#B72A30' }} />}</strong> • {room.member_count} participante(s)
                   <div style={{ color: '#333', marginTop: '15px' }}>
                     {room.last_message ? (
                       <>
@@ -322,11 +367,10 @@ export default function RoomsPage() {
                 <div className={`room-buttons ${!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) ? 'single-button' : ''}`}>
                   <button className="entrar-sala" onClick={() => entrarNaSala(room.id)}>Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} /></button>
 
-                  {(user?.sector_id === 29 ||
-                    user?.sector_id === 6 ||
-                    user?.sector?.sector_id === 29 ||
-                    user?.sector?.sector_id === 6) && (
-                    <button className="finalizar-sala"onClick={() => finalizarSala(room.id)}>Finalizar <PiChatCircleSlash size={26} style={{ marginLeft: '6px' }}/></button>
+                  {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && !room.is_finished && (
+                    <button className="finalizar-sala" onClick={() => finalizarSala(room.id)}>
+                      Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} />
+                    </button>
                   )}
                 </div>
               </li>

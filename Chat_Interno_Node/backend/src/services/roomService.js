@@ -40,30 +40,30 @@
             client.release();
         }
     };
-    exports.getUserRooms = async (userId) => {
-        const result = await pool.query(
-            `
-            SELECT 
-                r.*, 
-                (SELECT COUNT(*) FROM user_rooms ur2 WHERE ur2.room_id = r.id) AS member_count,
-                m.content AS last_message,
-                m.created_at AS last_message_time,
-                m.sender_id AS last_sender_id
-            FROM rooms r
-            JOIN user_rooms ur ON ur.room_id = r.id
-            LEFT JOIN LATERAL (
-                SELECT content, created_at, sender_id
-                FROM messages 
-                WHERE room_id = r.id 
-                ORDER BY created_at DESC 
-                LIMIT 1
-            ) m ON true
-            WHERE ur.user_id = $1
-            AND r.is_finished = false
-            `,
-            [userId]
-        );
+    exports.getUserRooms = async (userId, includeFinished = false) => {
+    const result = await pool.query(
+        `
+        SELECT 
+            r.*, 
+            (SELECT COUNT(*) FROM user_rooms ur2 WHERE ur2.room_id = r.id) AS member_count,
+            m.content AS last_message,
+            m.created_at AS last_message_time,
+            m.sender_id AS last_sender_id
+        FROM rooms r
+        JOIN user_rooms ur ON ur.room_id = r.id
+        LEFT JOIN LATERAL (
+            SELECT content, created_at, sender_id
+            FROM messages 
+            WHERE room_id = r.id 
+            ORDER BY created_at DESC 
+            LIMIT 1
+        ) m ON true
+        WHERE ur.user_id = $1
+        ${includeFinished ? '' : 'AND r.is_finished = false'}
+        `,
+        [userId]
+    );
 
-        return result.rows;
+    return result.rows;
     };
 

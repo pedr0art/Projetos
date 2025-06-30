@@ -54,7 +54,7 @@ export default function ChatRoomPage() {
         setRoomName(room.name);
         setRoomInfo(room);
 
-      if (room.is_finished) {
+      if (room.is_finished && user.sector_id !== 29) {
         alert('Esta sala foi finalizada. Você será redirecionado.');
         navigate('/rooms');
       }
