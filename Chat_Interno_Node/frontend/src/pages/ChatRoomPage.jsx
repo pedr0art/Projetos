@@ -234,6 +234,7 @@ export default function ChatRoomPage() {
           </div>
         </div>
 
+      {!roomInfo?.is_finished && (
         <div className="chat-input-area">
           <textarea
             ref={textareaRef}
@@ -249,14 +250,14 @@ export default function ChatRoomPage() {
             }}
             rows={1}
           />
-        <div className="send-button-container">
-          <button className="send-button" onClick={sendMessage}>
-            <BiSend size={30} />
-          </button>
+          <div className="send-button-container">
+            <button className="send-button" onClick={sendMessage}>
+              <BiSend size={30} />
+            </button>
+          </div>
         </div>
+      )}
       </div>
-      </div>
-
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
