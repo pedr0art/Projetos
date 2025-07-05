@@ -115,21 +115,35 @@ exports.addUserToRoom = async (req, res) => {
     }
     };
 exports.getRoomById = async (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const result = await pool.query(
-            'SELECT * FROM rooms WHERE id = $1',
-            [id]
-        );
+  try {
+    const roomRes = await pool.query(
+      'SELECT * FROM rooms WHERE id = $1',
+      [id]
+    );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Sala não encontrada' });
-        }
-
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error('Erro ao buscar sala por id:', err);
-        res.status(500).json({ error: 'Erro ao buscar sala' });
+    if (roomRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Sala não encontrada' });
     }
+
+    const room = roomRes.rows[0];
+
+    // Buscar os usuários da sala com nome e setor
+    const usersRes = await pool.query(
+      `SELECT u.id, u.full_name, s.sector_name, u.sector_id
+       FROM user_rooms ur
+       JOIN users u ON u.id = ur.user_id
+       JOIN sector s ON s.sector_id = u.sector_id
+       WHERE ur.room_id = $1`,
+      [id]
+    );
+
+    room.users = usersRes.rows;
+
+    res.json(room);
+  } catch (err) {
+    console.error('Erro ao buscar sala por id:', err);
+    res.status(500).json({ error: 'Erro ao buscar sala' });
+  }
 };

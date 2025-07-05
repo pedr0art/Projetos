@@ -13,8 +13,8 @@
     z-index: 1000;
   }
   @font-face {
-    font-family: 'Romanica';
-    src: url('../assets/fonts/Romanica.ttf') format('truetype');
+    font-family: 'mountolip';
+    src: url('../assets/fonts/mountolip.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -23,10 +23,10 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'Romanica', sans-serif;
+  font-family: 'mountolip';
   font-size: 2.2rem;
   font-weight: bold;
-  color: white;
+  color: #dfeae2;
   user-select: none;
   pointer-events: none; /* para não interferir no clique */
   cursor: default; 

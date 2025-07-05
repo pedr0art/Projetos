@@ -158,12 +158,54 @@ export default function RoomsPage() {
     setModoAtendimento(false);
     setIsModalOpen(true);
   };
+  const chamarTI = async () => {
+    if (!token || !user) return;
 
-  const abrirModalAtendimento = async () => {
-    await carregarUsuariosEsetores();
-    setModoAtendimento(true);
-    setIsModalOpen(true);
+    const confirmar = window.confirm('Criar sala com os usuários da Tecnologia e Informação?');
+    if (!confirmar) return;
+
+    try {
+      // Carrega usuários e setores
+      await fetchUsers();
+      await fetchSectors();
+
+      // Filtra usuários do setor 29 (TI)
+      const tiUsers = allUsers.filter((u) => u.sector_id === 29);
+      const tiUserIds = tiUsers.map((u) => u.id);
+
+      // Adiciona o usuário atual (criador da conversa)
+      const allUserIds = [...new Set([...tiUserIds, user.id])];
+
+      // Encontra a sigla do setor do usuário atual
+      const userSector = allSectors.find((s) => s.sector_id === user.sector_id);
+      const roomTitle = userSector?.sector_abbreviation || 'Nova Sala';
+
+      // Cria sala como GRUPO e captura resposta
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/rooms`,
+        {
+          name: roomTitle,
+          is_group: true,
+          users: allUserIds,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const novaSala = res.data;
+      if (novaSala?.id) {
+        navigate(`/chat/${novaSala.id}`); // redireciona
+      }
+
+      fetchRooms();
+    } catch (err) {
+      console.error('Erro ao chamar TI:', err);
+      alert('Erro ao criar sala com TI.');
+    }
   };
+
+
 
   // Criar sala
   const criarSala = async () => {
@@ -280,20 +322,31 @@ export default function RoomsPage() {
           </div>
         )}
 
-        <div className="room-form">
-          {(user?.sector_id === 29 ||
-            user?.sector_id === 6 ||
-            user?.sector?.sector_id === 29 ||
-            user?.sector?.sector_id === 6) && (
-            <button className="create-new-room" onClick={abrirModal}>Criar nova sala <IoMdAddCircleOutline size={28} style={{ marginLeft: '6px' }} /></button>
-          )}
-          {!(
-            user?.sector_id === 29 ||
-            user?.sector_id === 6 ||
-            user?.sector?.sector_id === 29 ||
-            user?.sector?.sector_id === 6
-          ) && <button className="create-new-room" onClick={abrirModalAtendimento}>Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} /></button>}
-        </div>
+      <div className="room-form">
+        {/* Setores 29 (TI) e 6: mostram "Criar nova sala" */}
+        {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
+          <>
+            <button className="create-new-room" onClick={abrirModal}>
+              Criar nova sala <IoMdAddCircleOutline size={28} style={{ marginLeft: '6px' }} />
+            </button>
+
+            {/* Setor 6 também vê o botão "Chamar TI" */}
+            {user?.sector_id === 6 || user?.sector?.sector_id === 6 ? (
+              <button className="create-new-room" onClick={chamarTI}>
+                Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} />
+              </button>
+            ) : null}
+          </>
+        )}
+
+  {/* Usuários de outros setores (não 6 ou 29): apenas "Chamar TI" */}
+  {!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
+    <button className="create-new-room" onClick={chamarTI}>
+      Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} />
+    </button>
+  )}
+</div>
+
 
         <div className="room-section">
 
