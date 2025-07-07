@@ -25,7 +25,8 @@ export default function RoomsPage() {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [modoAtendimento, setModoAtendimento] = useState(false);
   const [roomStatusFilter, setRoomStatusFilter] = useState('abertas'); // 'abertas' | 'finalizadas' | 'todas'
-
+  const [isChamarTIModalOpen, setIsChamarTIModalOpen] = useState(false);
+  const [chamarTITitulo, setChamarTITitulo] = useState('');
 
   const { socket, allOnlineUsers, addMessageListener, removeMessageListener } = useSocket();
   const navigate = useNavigate();
@@ -68,7 +69,12 @@ export default function RoomsPage() {
       console.error('Erro ao carregar setores:', err);
     }
   };
-
+  const abrirModalChamarTI = async () => {
+    await fetchUsers();
+    await fetchSectors();
+    setChamarTITitulo('');
+    setIsChamarTIModalOpen(true);
+  };
   // Carrega salas e usuários ao montar o componente
   useEffect(() => {
     if (!token) return;
@@ -158,54 +164,47 @@ export default function RoomsPage() {
     setModoAtendimento(false);
     setIsModalOpen(true);
   };
-  const chamarTI = async () => {
-    if (!token || !user) return;
+const criarSalaChamarTI = async () => {
+  if (!chamarTITitulo.trim()) {
+    alert('Por favor, informe o título do chamado.');
+    return;
+  }
+  if (!token || !user) return;
 
-    const confirmar = window.confirm('Criar sala com os usuários da Tecnologia e Informação?');
-    if (!confirmar) return;
+  try {
+    // Filtra usuários do setor 29 (TI)
+    const tiUsers = allUsers.filter((u) => u.sector_id === 29);
+    const tiUserIds = tiUsers.map((u) => u.id);
 
-    try {
-      // Carrega usuários e setores
-      await fetchUsers();
-      await fetchSectors();
+    // Adiciona o usuário atual (criador da conversa)
+    const allUserIds = [...new Set([...tiUserIds, user.id])];
 
-      // Filtra usuários do setor 29 (TI)
-      const tiUsers = allUsers.filter((u) => u.sector_id === 29);
-      const tiUserIds = tiUsers.map((u) => u.id);
+    // Encontra a sigla do setor do usuário atual
+    const userSector = allSectors.find((s) => s.sector_id === user.sector_id);
+    const sectorAbbr = userSector?.sector_abbreviation || 'TI';
 
-      // Adiciona o usuário atual (criador da conversa)
-      const allUserIds = [...new Set([...tiUserIds, user.id])];
+    const nomeSala = `${sectorAbbr} - ${chamarTITitulo.trim()}`;
 
-      // Encontra a sigla do setor do usuário atual
-      const userSector = allSectors.find((s) => s.sector_id === user.sector_id);
-      const roomTitle = userSector?.sector_abbreviation || 'Nova Sala';
-
-      // Cria sala como GRUPO e captura resposta
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/rooms`,
-        {
-          name: roomTitle,
-          is_group: true,
-          users: allUserIds,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      const novaSala = res.data;
-      if (novaSala?.id) {
-        navigate(`/chat/${novaSala.id}`); // redireciona
+    // Cria sala como GRUPO
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/rooms`,
+      {
+        name: nomeSala,
+        is_group: true,
+        users: allUserIds,
+      },
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
+    );
 
-      fetchRooms();
-    } catch (err) {
-      console.error('Erro ao chamar TI:', err);
-      alert('Erro ao criar sala com TI.');
-    }
-  };
-
-
+    fetchRooms();
+    setIsChamarTIModalOpen(false);
+  } catch (err) {
+    console.error('Erro ao criar sala Chamar TI:', err);
+    alert('Erro ao criar a sala Chamar TI.');
+  }
+};
 
   // Criar sala
   const criarSala = async () => {
@@ -290,37 +289,36 @@ export default function RoomsPage() {
   const salasGrupo = salasFiltradas.filter((room) => room.is_group);
 
   // Renderização
-  return (
-    <>
-      <Header full_name={user?.full_name} />
+return (
+  <>
+    <Header full_name={user?.full_name} />
 
-      <div className="rooms-container">
-        <div className="rooms-header">
-          <h2>Minhas Salas</h2>
-          
+    <div className="rooms-container">
+      <div className="rooms-header">
+        <h2>Minhas Salas</h2>
+      </div>
+      {(user?.sector_id === 29 || user?.sector?.sector_id === 29) && (
+        <div className="status-filter">
+          <button
+            className={roomStatusFilter === 'abertas' ? 'active' : ''}
+            onClick={() => setRoomStatusFilter('abertas')}
+          >
+            Em Aberto
+          </button>
+          <button
+            className={`finalizadas-button ${roomStatusFilter === 'finalizadas' ? 'active' : ''}`}
+            onClick={() => setRoomStatusFilter('finalizadas')}
+          >
+            Finalizadas
+          </button>
+          <button
+            className={roomStatusFilter === 'todas' ? 'active' : ''}
+            onClick={() => setRoomStatusFilter('todas')}
+          >
+            Todas
+          </button>
         </div>
-        {(user?.sector_id === 29 || user?.sector?.sector_id === 29) && (
-          <div className="status-filter">
-            <button
-              className={roomStatusFilter === 'abertas' ? 'active' : ''}
-              onClick={() => setRoomStatusFilter('abertas')}
-            >
-              Em Aberto
-            </button>
-            <button
-              className={`finalizadas-button ${roomStatusFilter === 'finalizadas' ? 'active' : ''}`}
-              onClick={() => setRoomStatusFilter('finalizadas')}
-            >
-              Finalizadas
-            </button>
-            <button
-              className={roomStatusFilter === 'todas' ? 'active' : ''}
-              onClick={() => setRoomStatusFilter('todas')}
-            >
-              Todas
-            </button>
-          </div>
-        )}
+      )}
 
       <div className="room-form">
         {/* Setores 29 (TI) e 6: mostram "Criar nova sala" */}
@@ -332,203 +330,254 @@ export default function RoomsPage() {
 
             {/* Setor 6 também vê o botão "Chamar TI" */}
             {user?.sector_id === 6 || user?.sector?.sector_id === 6 ? (
-              <button className="create-new-room" onClick={chamarTI}>
+              <button className="create-new-room" onClick={abrirModalChamarTI}>
                 Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} />
               </button>
             ) : null}
           </>
         )}
 
-  {/* Usuários de outros setores (não 6 ou 29): apenas "Chamar TI" */}
-  {!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
-    <button className="create-new-room" onClick={chamarTI}>
-      Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} />
-    </button>
-  )}
-</div>
-
-
-        <div className="room-section">
-
-          <h3>Salas Privadas</h3>
-          {salasPrivadas.length === 0 && <p>Nenhuma sala privada.</p>}
-          <ul>
-            {salasPrivadas.map((room) => (
-              <li key={room.id}>
-                <div>
-                  <strong>{room.name} {room.is_finished && <MdHideSource size={16} title="Sala finalizada" style={{ marginLeft: '4px', color: '#B72A30', justifycontent: 'center', alignitems: 'center' }} />}</strong> • {room.member_count} participante(s)
-                  <div style={{ color: '#333', marginTop: '15px' }}>
-                    {room.last_message ? (
-                      <>
-                        {room.last_sender_id === user.id
-                          ? 'Você'
-                          : allUsers.find((u) => u.id === room.last_sender_id)?.full_name || 'Alguém'}
-                        : {room.last_message}
-
-                        {room.last_message_time && (
-                          <div style={{ fontSize: '0.75rem', color: '#444', marginTop: '4px' }}>
-                            {dayjs(room.last_message_time).format('HH:mm')} hs - {dayjs(room.last_message_time).format('DD/MM/YYYY')}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      'Nenhuma mensagem ainda'
-                    )}
-                  </div>
-                </div>
-                <div className={`room-buttons ${!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) ? 'single-button' : ''}`}>
-                  <button className="entrar-sala"onClick={() => entrarNaSala(room.id)}>Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} /></button>
-
-                  {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && !room.is_finished && (
-                    <button className="finalizar-sala" onClick={() => finalizarSala(room.id)}>
-                      Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} />
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="room-section">
-          <h3>Salas de Grupo</h3>
-          {salasGrupo.length === 0 && <p>Nenhuma sala de grupo.</p>}
-          <ul>
-            {salasGrupo.map((room) => (
-              <li key={room.id}>
-                <div>
-                  <strong>{room.name} {room.is_finished && <MdHideSource  size={16} title="Sala finalizada" style={{ marginLeft: '4px', color: '#B72A30' }} />}</strong> • {room.member_count} participante(s)
-                  <div style={{ color: '#333', marginTop: '15px' }}>
-                    {room.last_message ? (
-                      <>
-                        {room.last_sender_id === user.id
-                          ? 'Você'
-                          : allUsers.find((u) => u.id === room.last_sender_id)?.full_name || 'Alguém'}
-                        : {room.last_message}
-
-                        {room.last_message_time && (
-                          <div style={{ fontSize: '0.75rem', color: '#444', marginTop: '4px' }}>
-                            {dayjs(room.last_message_time).format('HH:mm')} hs - {dayjs(room.last_message_time).format('DD/MM/YYYY')}
-                          </div>
-                        )}  
-                      </>
-                    ) : (
-                      'Nenhuma mensagem ainda'
-                    )}
-                  </div>
-                </div>
-                <div className={`room-buttons ${!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) ? 'single-button' : ''}`}>
-                  <button className="entrar-sala" onClick={() => entrarNaSala(room.id)}>Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} /></button>
-
-                  {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && !room.is_finished && (
-                    <button className="finalizar-sala" onClick={() => finalizarSala(room.id)}>
-                      Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} />
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Usuários de outros setores (não 6 ou 29): apenas "Chamar TI" */}
+        {!(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) && (
+          <button className="create-new-room" onClick={abrirModalChamarTI}>
+            Chamar TI <RiChatNewLine size={28} style={{ marginLeft: '6px' }} />
+          </button>
+        )}
       </div>
 
+      <div className="room-section">
+        <h3>Salas Privadas</h3>
+        {salasPrivadas.length === 0 && <p>Nenhuma sala privada.</p>}
+        <ul>
+          {salasPrivadas.map((room) => (
+            <li key={room.id}>
+              <div>
+                <strong>
+                  {room.name}{' '}
+                  {room.is_finished && (
+                    <MdHideSource
+                      size={16}
+                      title="Sala finalizada"
+                      style={{ marginLeft: '4px', color: '#B72A30', justifyContent: 'center', alignItems: 'center' }}
+                    />
+                  )}
+                </strong>{' '}
+                • {room.member_count} participante(s)
+                <div style={{ color: '#333', marginTop: '15px' }}>
+                  {room.last_message ? (
+                    <>
+                      {room.last_sender_id === user.id
+                        ? 'Você'
+                        : allUsers.find((u) => u.id === room.last_sender_id)?.full_name || 'Alguém'}
+                      : {room.last_message}
 
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Criar Nova Sala</h3>
-
-            <input
-              className="user-input"
-              placeholder="Nome da sala"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-            />
-
-            <select
-              className="sector-select"
-              value={isGroup ? 'grupo' : 'privada'}
-              onChange={(e) => setIsGroup(e.target.value === 'grupo')}
-            >
-              <option value="privada">Privada</option>
-              <option value="grupo">Grupo</option>
-            </select>
-
-            <input
-              className="user-input"
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-              placeholder="Filtrar por nome"
-            />
-            {!modoAtendimento && (
-              <select
-                className="sector-select"
-                value={filterSector}
-                onChange={(e) => setFilterSector(e.target.value)}
-              >
-                <option value="">Todos os setores</option>
-                {allSectors.map((sector) => (
-                  <option key={sector.sector_id} value={sector.sector_id}>
-                    {sector.sector_name}
-                  </option>
-                ))}
-              </select>
-            )}
-            {modoAtendimento && (
-              <div style={{ marginBottom: '0.5rem', fontStyle: 'italic' }}>
-                Mostrando apenas usuários do setor de tecnologia
+                      {room.last_message_time && (
+                        <div style={{ fontSize: '0.75rem', color: '#444', marginTop: '4px' }}>
+                          {dayjs(room.last_message_time).format('HH:mm')} hs - {dayjs(room.last_message_time).format('DD/MM/YYYY')}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    'Nenhuma mensagem ainda'
+                  )}
+                </div>
               </div>
-            )}
-            <div className="user-list">
-              {[...filteredUsers]
-                .sort((a, b) => {
-                  const aOnline = allOnlineUsers.some((u) => u.id === a.id);
-                  const bOnline = allOnlineUsers.some((u) => u.id === b.id);
-                  return aOnline === bOnline ? 0 : aOnline ? -1 : 1;
-                })
-                .map((u) => {
-                  const isOnline = allOnlineUsers.some((ou) => ou.id === u.id);
-                  return (
-                    <div
-                      key={u.id}
-                      className={`user-list-item ${
-                        selectedUsers.find((su) => su.id === u.id) ? 'selected' : ''
-                      } ${isOnline ? 'online' : ''}`}
-                      onClick={() => {
-                        setSelectedUsers((prev) => {
-                          const alreadySelected = prev.some((su) => su.id === u.id);
-                          if (!isGroup) {
-                            return alreadySelected ? [] : [u];
-                          }
-                          return alreadySelected
-                            ? prev.filter((su) => su.id !== u.id)
-                            : [...prev, u];
-                        });
-                      }}
-                    >
-                      {u.full_name} ({u.sector_name}) {isOnline ? '🟢' : ''}
-                    </div>
-                  );
-                })}
-            </div>
-
-            <div className="modal-buttons">
-              <button
-                onClick={criarSala}
-                disabled={
-                  !roomName.trim() ||
-                  selectedUsers.length === 0 ||
-                  (!isGroup && selectedUsers.length !== 1) ||
-                  (isGroup && selectedUsers.length < 1)
-                }
+              <div
+                className={`room-buttons ${
+                  !(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6)
+                    ? 'single-button'
+                    : ''
+                }`}
               >
-                Criar Sala
-              </button>
-              <button onClick={fecharModal}>Cancelar</button>
-            </div>
+                <button className="entrar-sala" onClick={() => entrarNaSala(room.id)}>
+                  Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} />
+                </button>
+
+                {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) &&
+                  !room.is_finished && (
+                    <button className="finalizar-sala" onClick={() => finalizarSala(room.id)}>
+                      Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} />
+                    </button>
+                  )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="room-section">
+        <h3>Salas de Grupo</h3>
+        {salasGrupo.length === 0 && <p>Nenhuma sala de grupo.</p>}
+        <ul>
+          {salasGrupo.map((room) => (
+            <li key={room.id}>
+              <div>
+                <strong>
+                  {room.name}{' '}
+                  {room.is_finished && (
+                    <MdHideSource size={16} title="Sala finalizada" style={{ marginLeft: '4px', color: '#B72A30' }} />
+                  )}
+                </strong>{' '}
+                • {room.member_count} participante(s)
+                <div style={{ color: '#333', marginTop: '15px' }}>
+                  {room.last_message ? (
+                    <>
+                      {room.last_sender_id === user.id
+                        ? 'Você'
+                        : allUsers.find((u) => u.id === room.last_sender_id)?.full_name || 'Alguém'}
+                      : {room.last_message}
+
+                      {room.last_message_time && (
+                        <div style={{ fontSize: '0.75rem', color: '#444', marginTop: '4px' }}>
+                          {dayjs(room.last_message_time).format('HH:mm')} hs - {dayjs(room.last_message_time).format('DD/MM/YYYY')}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    'Nenhuma mensagem ainda'
+                  )}
+                </div>
+              </div>
+              <div
+                className={`room-buttons ${
+                  !(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6)
+                    ? 'single-button'
+                    : ''
+                }`}
+              >
+                <button className="entrar-sala" onClick={() => entrarNaSala(room.id)}>
+                  Entrar <IoChatbubblesOutline size={28} style={{ marginLeft: '6px' }} />
+                </button>
+
+                {(user?.sector_id === 29 || user?.sector_id === 6 || user?.sector?.sector_id === 29 || user?.sector?.sector_id === 6) &&
+                  !room.is_finished && (
+                    <button className="finalizar-sala" onClick={() => finalizarSala(room.id)}>
+                      Finalizar <PiChatCircleSlash size={28} style={{ marginLeft: '6px' }} />
+                    </button>
+                  )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    {/* Modal existente de criar nova sala */}
+    {isModalOpen && (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h3>Criar Nova Sala</h3>
+
+          <input
+            className="user-input"
+            placeholder="Nome da sala"
+            value={roomName}
+            onChange={(e) => setRoomName(e.target.value)}
+          />
+
+          <select
+            className="sector-select"
+            value={isGroup ? 'grupo' : 'privada'}
+            onChange={(e) => setIsGroup(e.target.value === 'grupo')}
+          >
+            <option value="privada">Privada</option>
+            <option value="grupo">Grupo</option>
+          </select>
+
+          <input
+            className="user-input"
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            placeholder="Filtrar por nome"
+          />
+
+          <select
+            className="sector-select"
+            value={filterSector}
+            onChange={(e) => setFilterSector(e.target.value)}
+          >
+            <option value="">Todos os setores</option>
+            {allSectors.map((sector) => (
+              <option key={sector.sector_id} value={sector.sector_id}>
+                {sector.sector_name}
+              </option>
+            ))}
+          </select>
+
+          <div className="user-list">
+            {[...filteredUsers]
+              .sort((a, b) => {
+                const aOnline = allOnlineUsers.some((u) => u.id === a.id);
+                const bOnline = allOnlineUsers.some((u) => u.id === b.id);
+                return aOnline === bOnline ? 0 : aOnline ? -1 : 1;
+              })
+              .map((u) => {
+                const isOnline = allOnlineUsers.some((ou) => ou.id === u.id);
+                return (
+                  <div
+                    key={u.id}
+                    className={`user-list-item ${
+                      selectedUsers.find((su) => su.id === u.id) ? 'selected' : ''
+                    } ${isOnline ? 'online' : ''}`}
+                    onClick={() => {
+                      setSelectedUsers((prev) => {
+                        const alreadySelected = prev.some((su) => su.id === u.id);
+                        if (!isGroup) {
+                          return alreadySelected ? [] : [u];
+                        }
+                        return alreadySelected
+                          ? prev.filter((su) => su.id !== u.id)
+                          : [...prev, u];
+                      });
+                    }}
+                  >
+                    {u.full_name} ({u.sector_name}) {isOnline ? '🟢' : ''}
+                  </div>
+                );
+              })}
+          </div>
+
+          <div className="modal-buttons">
+            <button
+              onClick={criarSala}
+              disabled={
+                !roomName.trim() ||
+                selectedUsers.length === 0 ||
+                (!isGroup && selectedUsers.length !== 1) ||
+                (isGroup && selectedUsers.length < 1)
+              }
+            >
+              Criar Sala
+            </button>
+            <button onClick={fecharModal}>Cancelar</button>
           </div>
         </div>
-      )}
-    </>
-  );
+      </div>
+    )}
+
+    {/* Novo modal só para Chamar TI */}
+    {isChamarTIModalOpen && (
+      <div className="modal-overlay" onClick={() => setIsChamarTIModalOpen(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <h3>Chamar TI - Novo chamado</h3>
+
+          <input
+            className="user-input"
+            placeholder="Título do chamado"
+            value={chamarTITitulo}
+            onChange={(e) => setChamarTITitulo(e.target.value)}
+            autoFocus
+          />
+
+          <div className="modal-buttons">
+            <button onClick={criarSalaChamarTI} disabled={!chamarTITitulo.trim()}>
+              Criar Sala
+            </button>
+            <button onClick={() => setIsChamarTIModalOpen(false)}>Cancelar</button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
+);
 }
