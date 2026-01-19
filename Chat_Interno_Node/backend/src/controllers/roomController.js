@@ -1,24 +1,32 @@
 const roomService = require('../services/roomService');
 const pool = require('../config/db');
 const { getIO } = require('../sockets/socketHandler');
+// backend/src/controllers/roomController.js
 exports.createRoom = async (req, res) => {
-  const { name, is_group, users } = req.body;
+  const { name, is_group, users = [], target_sector_id } = req.body;
   const userId = req.user.id;
 
   try {
-    const room = await roomService.createRoom(name, is_group, userId, users);
+    // Pegar setor do criador
+    const userRes = await pool.query('SELECT sector_id FROM users WHERE id = $1', [userId]);
+    const creatorSectorId = userRes.rows[0]?.sector_id || null;
+
+    // Chamar o service com objeto (contain todos campos que queremos gravar)
+    const room = await roomService.createRoom({
+      name,
+      isGroup: !!is_group,
+      creatorId: userId,
+      creatorSectorId,
+      targetSectorId: target_sector_id ?? null,
+      userIds: users || []
+    });
 
     const io = getIO();
-    const allUserIds = [...new Set([userId, ...users])];
 
-    // Adicione o creator_id à resposta enviada no socket
+    // Emitir para todos usuários (inclui criador + adicionados)
+    const allUserIds = [...new Set([userId, ...(users || [])])];
     allUserIds.forEach((id) => {
-      io.to(`user_${id}`).emit('roomAdded', {
-        id: room.id,
-        name: room.name,
-        is_group: room.is_group,
-        creator_id: userId, // <- importante!
-      });
+      io.to(`user_${id}`).emit('roomAdded', room);
     });
 
     res.status(201).json(room);
@@ -27,6 +35,7 @@ exports.createRoom = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 
 exports.getUserRooms = async (req, res) => {

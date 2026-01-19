@@ -1,0 +1,166 @@
+/* DashboardTI.css */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 60px auto;
+  padding: 22px;
+  background-color: #b4d6c1; /* seguindo RoomsPage */
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  color: #0f3831;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* header */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.back-button {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #0f3831;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.back-button:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.dashboard-title h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #073230;
+}
+/* DashboardTI.css */
+.mt-large {
+  margin-top: 32px;
+}
+
+.dashboard-sub {
+  margin: 0;
+  color: #244a44;
+  font-size: 0.95rem;
+}
+
+/* actions */
+.action-refresh {
+  background: #207567;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.action-small {
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* KPI grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.kpi-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kpi-title {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.kpi-value {
+  margin: 4px 0 0;
+  font-size: 22px;
+  color: #073230;
+}
+
+/* charts grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+  margin-top: 22px;
+}
+
+/* Aumenta padding dos cards de gráficos */
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px; /* antes: 18px */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* Altura mínima para gráficos fullwidth */
+.chart-card.fullwidth {
+  grid-column: 1 / -1;
+  min-height: 400px; /* antes: 380px */
+}
+
+/* Ajuste para charts dentro do card */
+.responsive-chart {
+  width: 100%;
+  height: 380px; /* altura aumentada para gráficos */
+}
+
+
+.chart-card h3 {
+  margin: 0 0 12px 0;
+  color: #0f3831;
+}
+
+/* messages controls */
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* small controls in header */
+.chart-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.chart-controls select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* loading / error */
+.dashboard-loading,
+.dashboard-error {
+  max-width: 1200px;
+  margin: 120px auto;
+  text-align: center;
+  font-size: 1.05rem;
+  color: #333;
+  padding: 20px;
+}

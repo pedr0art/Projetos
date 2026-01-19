@@ -8,6 +8,8 @@ import RegisterPage from './pages/RegisterPage';
 import MainLayout from './layout/MainLayout';
 import PrivateRoute from './components/PrivateRoute';
 import { SocketProvider } from './context/SocketContext';
+import DashboardTI from './pages/DashboardTI';
+
 function App() {
   return (
     <AuthProvider>
@@ -22,6 +24,7 @@ function App() {
               <Route element={<MainLayout />}>
                 <Route path="/rooms" element={<RoomsPage />} />
                 <Route path="/chat/:id" element={<ChatRoomPage />} />
+                <Route path="/dashboard-ti" element={<DashboardTI />} />
               </Route>
             </Route>
           </Routes>

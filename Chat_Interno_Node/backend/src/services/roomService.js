@@ -1,45 +1,59 @@
     const pool = require('../config/db');
+exports.createRoom = async ({
+  name,
+  isGroup = false,
+  creatorId,
+  creatorSectorId = null,
+  targetSectorId = null,
+  userIds = []
+}) => {
+  const client = await pool.connect();
 
-    exports.createRoom = async (name, isGroup, creatorId, userIds = []) => {
-        const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-        try {
-            await client.query('BEGIN');
+    const roomRes = await client.query(
+      `INSERT INTO rooms (
+         name,
+         is_group,
+         owner_id,
+         created_by,
+         sector_id,
+         target_sector_id,
+         is_finished,
+         is_closed
+       ) VALUES ($1, $2, $3, $4, $5, $6, false, false)
+       RETURNING *`,
+      [name, isGroup, creatorId, creatorId, creatorSectorId, targetSectorId]
+    );
 
-            // Criar a sala
-            const roomRes = await client.query(
-                'INSERT INTO rooms (name, is_group) VALUES ($1, $2) RETURNING *',
-                [name, isGroup]
-            );
+    const room = roomRes.rows[0];
 
-            const room = roomRes.rows[0];
+    // Inserir criação do criador na user_rooms (usar ON CONFLICT para segurança)
+    await client.query(
+      'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [creatorId, room.id]
+    );
 
-            // Adicionar o criador da sala
-            await client.query(
-                'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2)',
-                [creatorId, room.id]
-            );
+    // Inserir demais usuários (se houver)
+    for (const userId of userIds) {
+      if (userId === creatorId) continue;
+      await client.query(
+        'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [userId, room.id]
+      );
+    }
 
-            // Adicionar os demais usuários (se tiver)
-            for (const userId of userIds) {
-                // Evitar duplicar o criador
-                if (userId !== creatorId) {
-                    await client.query(
-                        'INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-                        [userId, room.id]
-                    );
-                }
-            }
+    await client.query('COMMIT');
+    return room;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+};
 
-            await client.query('COMMIT');
-            return room;
-        } catch (err) {
-            await client.query('ROLLBACK');
-            throw err;
-        } finally {
-            client.release();
-        }
-    };
     exports.getUserRooms = async (userId, includeFinished = false) => {
     const result = await pool.query(
         `

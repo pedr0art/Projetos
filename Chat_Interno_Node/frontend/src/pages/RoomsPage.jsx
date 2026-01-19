@@ -186,17 +186,19 @@ const criarSalaChamarTI = async () => {
     const nomeSala = `${sectorAbbr} - ${chamarTITitulo.trim()}`;
 
     // Cria sala como GRUPO
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/rooms`,
-      {
-        name: nomeSala,
-        is_group: true,
-        users: allUserIds,
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+  await axios.post(
+    `${import.meta.env.VITE_API_URL}/api/rooms`,
+    {
+      name: nomeSala,
+      is_group: true,
+      users: allUserIds,
+      target_sector_id: 29 // <- importante: direciona para TI
+    },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+
 
     fetchRooms();
     setIsChamarTIModalOpen(false);
@@ -217,11 +219,11 @@ const criarSalaChamarTI = async () => {
           name: roomName,
           is_group: isGroup,
           users: selectedUsers.map((u) => u.id),
+          target_sector_id: null
         },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
 
       setRoomName('');
       setIsGroup(false);

@@ -7,12 +7,14 @@ import empresaLogo from '../assets/logo_orinn.svg'; // <- substitua com seu logo
 import { FaUserCircle } from 'react-icons/fa';
 import { LuUserPen } from "react-icons/lu";
 import { MdLogout } from "react-icons/md";
-
+import { MdDashboard } from "react-icons/md";
+import { useLocation } from 'react-router-dom';
 export default function Header() {
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const modalRef = useRef();
   const navigate = useNavigate();
+  const location = useLocation(); // <<< ESSENCIAL
 
   const handleLogout = () => {
     logout();
@@ -63,6 +65,21 @@ export default function Header() {
                   Cadastrar novo usuário <LuUserPen size={25} style={{ marginLeft: '6px' }} />
                 </button>
               )}
+            {(user.sector_id === 29 || user.sector?.sector_id === 29) && location.pathname !== '/dashboard-ti' && (
+              <button
+                className="register-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsProfileOpen(false);
+                  navigate('/dashboard-ti');
+                }}
+              >
+                Dashboard TI
+                <MdDashboard size={25} style={{ marginLeft: '6px' }} />
+              </button>
+            )}
+
+
 
               <button
                 className="logout-button"
