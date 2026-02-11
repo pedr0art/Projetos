@@ -26,7 +26,8 @@ import {
   Cell,
   Legend
 } from 'recharts';
-
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 import {
   getDashboardSummary,
@@ -59,6 +60,40 @@ export default function DashboardTI() {
   const palette = [
     '#4F46E5','#10B981','#F59E0B','#EF4444','#3B82F6','#F97316','#8B5CF6','#EC4899','#0EA5E9','#14B8A6'
   ];
+
+
+const exportToPDF = async () => {
+  const element = document.getElementById('dashboard-pdf');
+
+  if (!element) return;
+
+  const canvas = await html2canvas(element, {
+    scale: 2, // melhora qualidade
+    useCORS: true,
+    backgroundColor: '#b4d6c1'
+  });
+
+  const imgData = canvas.toDataURL('image/png');
+
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  let heightLeft = pdfHeight;
+  let position = 0;
+
+  pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+  heightLeft -= pdf.internal.pageSize.getHeight();
+
+  while (heightLeft > 0) {
+    position = heightLeft - pdfHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pdf.internal.pageSize.getHeight();
+  }
+
+  pdf.save(`HermesHub-Dashboard-${new Date().toLocaleDateString('pt-BR')}.pdf`);
+};
 
 const sectorColors = {
   "AEP": "#4F46E5",
@@ -155,14 +190,18 @@ const colorForSector = (abbrev) => {
           <MdArrowBack size={20} /> Voltar
         </button>
         <div className="dashboard-title">
-          <h1>Dashboard TI</h1>
+          <h1>Dashboard</h1>
           <p className="dashboard-sub">Indicadores gerais</p>
         </div>
         <div className="dashboard-actions">
           <button className="action-refresh" onClick={fetchData}>Atualizar</button>
+          <button className="action-refresh" onClick={exportToPDF}>
+            Exportar PDF
+          </button>
+
         </div>
       </div>
-
+      <div id="dashboard-pdf">
       {/* KPIs */}
       <div className="kpi-grid">
         {kpis.map((kpi, idx) => (
@@ -218,7 +257,7 @@ const colorForSector = (abbrev) => {
           cy="50%"
           outerRadius={90}
           // label mostra a sigla (abbreviation)
-          label={({ abbreviation }) => abbreviation}
+          label
         >
           {sectorChart.map((entry, i) => (
             <Cell key={`cell-sector-${i}`} fill={colorForSector(entry.abbreviation)} />
@@ -317,7 +356,7 @@ const colorForSector = (abbrev) => {
           </ResponsiveContainer>
         ) : <p style={{ padding: 12 }}>Nenhum dado</p>}
       </div>
-
+</div>
     </div>
   );
 }

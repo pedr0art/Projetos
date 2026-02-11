@@ -1,9 +1,10 @@
 const dashboardService = require('../services/dashboardService');
 
+const ALLOWED_SECTORS = [29, 6]; // ✅ setores permitidos
+
 async function getSummary(req, res) {
   try {
-    // 🔒 Somente TI
-    if (req.user.sector_id !== 29) {
+    if (!ALLOWED_SECTORS.includes(req.user.sector_id)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 
@@ -18,7 +19,7 @@ async function getSummary(req, res) {
 
 async function getRoomsStatusChart(req, res) {
   try {
-    if (req.user.sector_id !== 29) {
+    if (!ALLOWED_SECTORS.includes(req.user.sector_id)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 
@@ -30,9 +31,10 @@ async function getRoomsStatusChart(req, res) {
     res.status(500).json({ error: 'Erro interno' });
   }
 }
+
 async function getRoomsBySector(req, res) {
   try {
-    if (req.user.sector_id !== 29) {
+    if (!ALLOWED_SECTORS.includes(req.user.sector_id)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 
@@ -47,7 +49,7 @@ async function getRoomsBySector(req, res) {
 
 async function getMessagesOverTime(req, res) {
   try {
-    if (req.user.sector_id !== 29) {
+    if (!ALLOWED_SECTORS.includes(req.user.sector_id)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 
@@ -60,9 +62,10 @@ async function getMessagesOverTime(req, res) {
     res.status(500).json({ error: 'Erro interno' });
   }
 }
+
 async function getTopCreators(req, res) {
   try {
-    if (req.user.sector_id !== 29) {
+    if (!ALLOWED_SECTORS.includes(req.user.sector_id)) {
       return res.status(403).json({ error: 'Acesso negado' });
     }
 

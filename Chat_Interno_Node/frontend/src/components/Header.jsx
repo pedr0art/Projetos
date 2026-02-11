@@ -32,6 +32,7 @@ export default function Header() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+const DASHBOARD_SECTORS = [29, 6];
 
   return (
     <header className="app-header">
@@ -65,7 +66,9 @@ export default function Header() {
                   Cadastrar novo usuário <LuUserPen size={25} style={{ marginLeft: '6px' }} />
                 </button>
               )}
-            {(user.sector_id === 29 || user.sector?.sector_id === 29) && location.pathname !== '/dashboard-ti' && (
+            {DASHBOARD_SECTORS.includes(user.sector_id) &&
+              location.pathname !== '/dashboard-ti' && (
+
               <button
                 className="register-button"
                 onClick={(e) => {
